@@ -15,7 +15,8 @@
     "test:rpc": "npm run test:rpc --workspace api",
     "verify:deployment": "npm run verify --workspace api",
     "test:contracts": "bash scripts/test-contracts.sh",
-    "check:upstream": "node --import tsx api/src/check-upstream.ts"
+    "check:upstream": "node --import tsx api/src/check-upstream.ts",
+    "docs:api": "node --import tsx api/src/export-openapi.ts"
   },
   "engines": {
     "node": ">=22"
