@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces",
-    "test": "npm test --workspace api",
+    "test": "npm test --workspaces",
     "dev": "npm run dev --workspace api",
     "start": "npm start --workspace api",
     "test:rpc": "npm run test:rpc --workspace api",
