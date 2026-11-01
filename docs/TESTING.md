@@ -1,6 +1,6 @@
 # Testing
 
-`npm run build` compiles API and frontend client. `npm test` runs deterministic routing, chain transport, API and frontend HTTP client tests with clearly marked mock fixtures. Fixtures are not live quotations. `npm run test:contracts` first builds optimized WASM and then runs the pinned Rust workspace directly; direct Cargo exit status is preserved because upstream Makefile loops can hide failures.
+`npm run build` compiles API and frontend client. `npm test` runs deterministic routing, chain transport, API and frontend HTTP client tests with clearly marked mock fixtures. Fixtures are not live quotations. `npm run test:contracts` first builds optimized WASM and then runs the pinned Rust workspace from a disposable source copy; Cargo exit status is preserved because upstream Makefile loops can hide failures.
 
 `RUN_TESTNET_TESTS=1 npm run test:rpc` opts into live network status. Set TEST_TOKEN_IN, TEST_TOKEN_OUT and optionally TEST_AMOUNT with a verified deployment manifest to run pool/quote parity integration. Without those inputs the liquidity test is explicitly skipped. `npm run check:upstream` checks the historical pinned upstream candidate and prints a candidate manifest only after all checks; it never enables addresses automatically.
 
@@ -18,3 +18,11 @@ Routing tests cover pinned fee rounding, exact output, slippage floors/ceilings,
 No deployment has been performed. Docker validation and external veltrixae-contracts integration require their respective environment/artifacts and must not be inferred from TypeScript tests.
 
 Frontend client tests use a localhost HTTP server to verify request serialization, error propagation, finalization polling and cancellation; constrained sandboxes must allow localhost binding for that test. Additional chain/API regressions cover malformed ledger metadata, ambiguous asset manifests, fresh unsigned swap preparation and no-store response headers.
+
+## Upstream fixture compatibility
+
+The initial upstream workspace test build exposed a stale deployer fixture: Adapter used a string protocol_id and an address field while the compiled aggregator ABI requires Protocol::Soroswap and router. `patches/soroswap-deployer-test-abi.patch` corrects only that fixture in a disposable source copy. The pinned submodule remains byte-for-byte unchanged. The runner copies contracts without build outputs, links existing optimized artifacts, applies the reviewed patch and propagates Cargo failures. Temporary snapshots are removed with that source copy.
+
+`contract-tests/` is a separate Rust test crate importing the actual optimized aggregator WASM. Four additional tests verify unauthorized initialization, unauthorized admin mutation with unchanged state, unauthorized exact-input/output swaps, and invalid amounts/paths/distribution. Initialization for relevant tests is authorized, then authorization mocking is explicitly disabled before adversarial calls. Run it after building WASM with `cargo test --manifest-path contract-tests/Cargo.toml --locked`.
+
+Static OpenAPI is exported with `npm run docs:api`; CI checks that the checked-in docs/openapi.json matches route registration. Exporting it does not query or deploy contracts.

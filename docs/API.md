@@ -1,6 +1,6 @@
 # API contract
 
-Base path `/api/v1`. OpenAPI JSON is served at `/api/v1/openapi.json`. Amounts/reserves are decimal integer strings; times are Unix milliseconds. IDs are checksummed Soroban addresses; transaction hashes are 64 hexadecimal characters. Responses below are wrappers around the exported frontend TypeScript interfaces in `packages/frontend-client/src/index.ts`.
+Base path `/api/v1`. OpenAPI JSON is served at `/api/v1/openapi.json` and exported to `docs/openapi.json` with `npm run docs:api`. Amounts/reserves are decimal integer strings; times are Unix milliseconds. IDs are checksummed Soroban addresses; transaction hashes are 64 hexadecimal characters. Responses below are wrappers around the exported frontend TypeScript interfaces in `packages/frontend-client/src/index.ts`.
 
 | Method/path | Response |
 | --- | --- |

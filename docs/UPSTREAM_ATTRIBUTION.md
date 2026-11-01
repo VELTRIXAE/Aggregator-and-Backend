@@ -7,3 +7,5 @@ The nested upstream protocol gitlinks identify Soroswap Core (https://github.com
 The original root MIT LICENSE is retained unchanged. Upstream root LICENSE contains Apache License 2.0, while its Cargo workspace declares GPL-3.0. Preserve both notices and obtain license clarification before redistribution if needed; this project does not resolve the discrepancy by relabeling upstream code. Bundled WASM and audit reports retain upstream provenance and are not new VELTRIXAE audits.
 
 The API quotation model mirrors the pinned Soroswap Core library in protocols/soroswap/contracts/library/src/quotes.rs and its checked ceiling division. Protocol capabilities are based on checked-in interfaces, not marketing claims or assumptions of current Testnet availability.
+
+A VELTRIXAE-maintained patch in patches/soroswap-deployer-test-abi.patch updates one stale upstream deployer test fixture to the already-existing compiled ABI. It is applied only to temporary test sources, never deployed contract code or the pinned gitlink. Additional VELTRIXAE WASM boundary tests live in contract-tests/ under the preserved root license.
