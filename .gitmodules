@@ -1,0 +1,3 @@
+[submodule "upstream/soroswap"]
+	path = upstream/soroswap
+	url = https://github.com/soroswap/aggregator.git
