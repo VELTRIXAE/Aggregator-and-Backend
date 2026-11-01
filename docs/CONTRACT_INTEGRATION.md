@@ -1,0 +1,13 @@
+# VELTRIXAE contract integration
+
+No veltrixae-contracts checkout or verified deployment IDs are present. The application supports the preserved Soroswap-compatible ABI; arbitrary VELTRIXAE ABIs cannot be assumed compatible. Obtain reviewed WASM/spec artifacts and Testnet IDs from veltrixae-contracts maintainers before enabling the manifest.
+
+`config/testnet.json` has network=testnet, soroswap=null, veltrixae=null and assets=[]. To enable soroswap, provide factory, router, factoryWasmHash, routerWasmHash and pairWasmHash. All hashes are lower-case 64-character SHA-256 hashes of deployed WASM. To enable veltrixae, provide aggregator and aggregatorWasmHash. Do not use placeholders resembling live addresses.
+
+Run `npm run verify:deployment` to check Testnet passphrase, code hashes, router factory, active aggregator Soroswap router and pool identity/reserves. Metadata asset entries are contract plus either native=true or a valid code and Ed25519 issuer; the classic asset must derive to that contract on Testnet. No issuer trust endorsement is made.
+
+The preserved aggregator expects swap_exact_tokens_for_tokens(token_in, token_out, amount_in, amount_out_min, distribution, to, deadline) or swap_tokens_for_exact_tokens(token_in, token_out, amount_out, amount_in_max, distribution, to, deadline). Distribution is a vector of structs: protocol_id is the Soroban enum [symbol Soroswap], path is Address[], parts is u32, bytes is Option<Vec<BytesN<32>>> (None for Soroswap). Deadline is Unix seconds u64. Recipient authorization and admin authorization remain in Rust.
+
+`StellarChain.swapOperation` encodes an unsigned single-route invocation. The connected wallet must build with its public account and sequence, simulate the actual invocation, inspect authorization and resource fees, assemble, sign and submit. Router quote simulation alone does not validate balances or swap authorization. Do not sign an expired quote or allow a client to substitute the reviewed contract ID. Transaction lookup reports the resulting hash.
+
+Contract ABI, artifact hash and initialized router/admin state must all be reviewed. A code hash match is not a security audit. Changes to pause state or code require revalidation. Historical candidate addresses are not configured automatically. No deployment or contract initialization is performed by API startup.
