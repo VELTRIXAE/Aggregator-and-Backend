@@ -26,3 +26,9 @@ The initial upstream workspace test build exposed a stale deployer fixture: Adap
 `contract-tests/` is a separate Rust test crate importing the actual optimized aggregator WASM. Four additional tests verify unauthorized initialization, unauthorized admin mutation with unchanged state, unauthorized exact-input/output swaps, and invalid amounts/paths/distribution. Initialization for relevant tests is authorized, then authorization mocking is explicitly disabled before adversarial calls. Run it after building WASM with `cargo test --manifest-path contract-tests/Cargo.toml --locked`.
 
 Static OpenAPI is exported with `npm run docs:api`; CI checks that the checked-in docs/openapi.json matches route registration. Exporting it does not query or deploy contracts.
+
+The final contract runner also executes `npm run test:abi`, which compares the TypeScript unsigned exact-input/output operation arguments byte-for-byte against encoding produced from the actual optimized Rust aggregator contract spec. This validates enum, struct, Option, address, integer and deadline encoding without claiming a live deployment.
+
+The compiled-spec test exposed two pre-existing scaffold encoding errors: Protocol is a u32 enum, and Rust distribution struct fields require Symbol map keys. Both the active-adapter check and unsigned swap encoding now match the pinned Rust spec. Fixture transports were corrected to return the real numeric protocol representation rather than hiding the mismatch.
+
+Manual deployment preparation has been TypeScript-compiled and shell syntax checked. Its initialization arguments come from the compiled aggregator spec; it validates the configured Testnet factory/router and local/deployed code hashes. Deployment uses the preserved atomic deployer, avoiding a separate uninitialized instance. No signing or submission test was run, and this is not a deployment-success claim.
