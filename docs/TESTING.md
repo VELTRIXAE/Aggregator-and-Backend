@@ -32,3 +32,19 @@ The final contract runner also executes `npm run test:abi`, which compares the T
 The compiled-spec test exposed two pre-existing scaffold encoding errors: Protocol is a u32 enum, and Rust distribution struct fields require Symbol map keys. Both the active-adapter check and unsigned swap encoding now match the pinned Rust spec. Fixture transports were corrected to return the real numeric protocol representation rather than hiding the mismatch.
 
 Manual deployment preparation has been TypeScript-compiled and shell syntax checked. Its initialization arguments come from the compiled aggregator spec; it validates the configured Testnet factory/router and local/deployed code hashes. Deployment uses the preserved atomic deployer, avoiding a separate uninitialized instance. No signing or submission test was run, and this is not a deployment-success claim.
+
+## Final verified results (2026-11-01)
+
+| Check | Observed result |
+| --- | --- |
+| npm run build | API and frontend client compiled successfully |
+| npm test | 22 API/chain/routing tests and 1 frontend HTTP client test passed |
+| npm run test:contracts | Six contract artifacts built/optimized; 149 upstream tests, 4 additional WASM tests and 1 TypeScript ABI parity test passed; exit status 0 |
+| npm audit --audit-level=moderate | Zero vulnerabilities reported by npm |
+| Live Testnet RPC integration | Network/ledger passed; configured liquidity/quote test explicitly skipped without deployment/token inputs |
+| Native token read simulation | Live Testnet symbol read succeeded |
+| Historical upstream deployment verification | CONTRACT_NOT_FOUND; candidate remains disabled |
+| Docker | Backend image built; non-root application health and invalid-request handling passed |
+| Shell/OpenAPI | Script syntax checked; static OpenAPI generated without drift |
+
+No deployment, contract initialization, mainnet operation or Git push was performed. No full live VELTRIXAE swap was tested: reviewed deployment IDs, ABI artifacts and liquidity were not provided. The named public contracts repository lookup returned 404; this may indicate private or unavailable content, not proof that the repository does not exist. Source-preserved Phoenix/Aqua/Comet adapters pass their upstream tests, but only Soroswap-compatible pools are enabled in the API quote model.
