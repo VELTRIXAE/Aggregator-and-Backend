@@ -5,6 +5,8 @@ git submodule update --init upstream/soroswap
 # Aqua's pinned remote is unavailable. Preserve its gitlink and bundled WASM; do not replace its revision.
 git -C upstream/soroswap submodule update --init protocols/soroswap protocols/phoenix-contracts protocols/CometDEX
 rustup target add wasm32-unknown-unknown
+# The remote SDK 29 compatibility harness requires Rust >=1.91; upstream contracts stay on 1.84.
+rustup toolchain install 1.99.1 --profile minimal
 npm ci --ignore-scripts
 if ! command -v stellar >/dev/null; then
   cargo install --locked stellar-cli --version 22.8.1

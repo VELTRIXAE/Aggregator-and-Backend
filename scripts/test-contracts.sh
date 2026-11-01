@@ -10,5 +10,5 @@ patch -d "$test_root" -p1 < patches/soroswap-deployer-test-abi.patch
 # Upstream contractimport! paths expect optimized WASM in contracts/target.
 ln -s "$PWD/upstream/soroswap/contracts/target" "$test_root/contracts/target"
 cargo test --manifest-path "$test_root/contracts/Cargo.toml" --workspace --locked
-CARGO_TARGET_DIR="$PWD/upstream/soroswap/contracts/target" cargo test --manifest-path contract-tests/Cargo.toml --locked
+CARGO_TARGET_DIR="$PWD/upstream/soroswap/contracts/target" cargo +1.99.1 test --manifest-path contract-tests/Cargo.toml --locked
 npm run test:abi

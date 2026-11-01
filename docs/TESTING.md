@@ -78,3 +78,9 @@ No Rust contract source or upstream pin was changed. No deployment, funding, sig
 The contracts exporter now includes an explicit Testnet passphrase, schema version, package versions and upload receipts. The importer accepts those known fields while retaining strict validation and rejects a wrong passphrase. The expanded backend test run passed 29 API/chain/routing/importer tests and 1 frontend client test; both workspaces built successfully. Contract ABI comparison against the inspected source bindings passed.
 
 A later user-approved Testnet attempt confirmed four transactions but stopped before Factory initialization at the per-transaction fee cap. The partial receipt report is evidence of those four transactions only. It is not a successful complete deployment, live quotation test, or reason to activate configuration. The Contracts push was denied by GitHub permissions; the local commits remain preserved.
+
+## Preserving remote dependency updates
+
+The remote main branch subsequently merged Soroban SDK 29.0.1 for the standalone contract-tests harness, TypeScript 7 and rate-limit 11. These updates are preserved. SDK 29 declares rust-version=1.91.0, so the harness now uses its own pinned Rust 1.99.1 toolchain; the unchanged upstream contract workspace still builds with Rust 1.84. Setup installs both toolchains, and the runner selects the harness compiler explicitly. This is a test-host migration, not a deployed contract SDK change. The API checkout keeps remote actions/checkout v7 while initializing the pinned upstream submodule required by ABI tests.
+
+The remote SDK 29 harness passed all four WASM compatibility tests on Rust 1.99.1. TypeScript 7/rate-limit 11 build and all 30 API/frontend tests passed; OpenAPI export has no drift. Latest deployment state is checkpointed in NEXT_SESSION.md after the user explicitly paused further transactions.

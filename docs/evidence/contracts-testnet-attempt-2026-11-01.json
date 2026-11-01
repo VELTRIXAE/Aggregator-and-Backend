@@ -1,8 +1,8 @@
 {
   "network": "testnet",
-  "checkedAt": "2026-11-01T23:36:13.396Z",
+  "checkedAt": "2026-11-01T23:50:08.802Z",
   "factory": "CCBE2WCHO5PY6WVXTKZLIZA446M43RTOVD4S6XZYHPHJEL7K33LHW6RA",
-  "initialized": false,
+  "initialized": true,
   "receipts": [
     {
       "operation": "pair_upload",
@@ -31,6 +31,20 @@
       "status": "SUCCESS",
       "ledger": 5510479,
       "feeChargedStroops": "14898"
+    },
+    {
+      "operation": "factory_initialize",
+      "txHash": "6163766dce774f96180a27802052349838bb8b7cbcac37050c279264191c8511",
+      "status": "SUCCESS",
+      "ledger": 5510634,
+      "feeChargedStroops": "18769580"
+    },
+    {
+      "operation": "router_deploy",
+      "txHash": "46c46fc26fbf9dc3ec799172ccdbf13645f7e8184e229d01e776b085744c7bba",
+      "status": "SUCCESS",
+      "ledger": 5510635,
+      "feeChargedStroops": "14927"
     }
   ],
   "remainingSimulations": [
@@ -52,7 +66,17 @@
   "completed": false,
   "build_git_commit": "133b18d00505108c26382cb44045abab48b51882",
   "deployer": "GCOK3K62FKMGHI4AJRRNEN6WJQUERE5ZPOHEKF6BB5M4GH3BDCQQMXFL",
-  "status": "INCOMPLETE_FEE_CAP_STOP",
+  "status": "PAUSED_BY_USER_ROUTER_INITIALIZATION_PENDING",
   "network_passphrase": "Test SDF Network ; September 2015",
-  "totalFeeChargedStroops": "34813186"
+  "totalFeeChargedStroops": "53597693",
+  "router": "CDSNTA4DH5CXDJJMY4QQ6IUF2M3VLR2WVPCL3UUQMCVUDQ5ZHVYWUZA4",
+  "factoryInitialized": true,
+  "routerInitialized": false,
+  "lastFeeGuard": {
+    "operation": "router_initialize",
+    "simulatedFeeStroops": "49487909",
+    "approvedPerTransactionCapStroops": "30000000",
+    "totalBudgetStroops": "140000000",
+    "submitted": false
+  }
 }
