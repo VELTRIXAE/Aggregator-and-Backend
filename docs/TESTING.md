@@ -1,6 +1,6 @@
 # Testing
 
-`npm run build` compiles API and frontend client. `npm test` runs deterministic routing, chain transport and API tests with clearly marked mock fixtures. Fixtures are not live quotations. `npm run test:contracts` first builds optimized WASM and then runs the pinned Rust workspace directly; direct Cargo exit status is preserved because upstream Makefile loops can hide failures.
+`npm run build` compiles API and frontend client. `npm test` runs deterministic routing, chain transport, API and frontend HTTP client tests with clearly marked mock fixtures. Fixtures are not live quotations. `npm run test:contracts` first builds optimized WASM and then runs the pinned Rust workspace directly; direct Cargo exit status is preserved because upstream Makefile loops can hide failures.
 
 `RUN_TESTNET_TESTS=1 npm run test:rpc` opts into live network status. Set TEST_TOKEN_IN, TEST_TOKEN_OUT and optionally TEST_AMOUNT with a verified deployment manifest to run pool/quote parity integration. Without those inputs the liquidity test is explicitly skipped. `npm run check:upstream` checks the historical pinned upstream candidate and prints a candidate manifest only after all checks; it never enables addresses automatically.
 
@@ -16,3 +16,5 @@ Routing tests cover pinned fee rounding, exact output, slippage floors/ceilings,
 - Initial contract runner stopped because Stellar CLI was absent. Direct Cargo baseline attempted before changes; final results are recorded below after tool setup.
 
 No deployment has been performed. Docker validation and external veltrixae-contracts integration require their respective environment/artifacts and must not be inferred from TypeScript tests.
+
+Frontend client tests use a localhost HTTP server to verify request serialization, error propagation, finalization polling and cancellation; constrained sandboxes must allow localhost binding for that test. Additional chain/API regressions cover malformed ledger metadata, ambiguous asset manifests, fresh unsigned swap preparation and no-store response headers.

@@ -10,6 +10,7 @@ Base path `/api/v1`. OpenAPI JSON is served at `/api/v1/openapi.json`. Amounts/r
 | GET /pools/:id | {pool: Pool}, 404 when absent from verified factory |
 | GET /markets | {ledger, observedAt, markets: Market[]} with raw rational reserve ratios |
 | POST /quotes | Quote with routes, selectedRoute, bounds, fees, expiry and ledger |
+| POST /swaps/prepare | PreparedSwap containing fresh quote, unsigned transactionXdr, resourceFee, totalFee and simulation ledger |
 | GET /routes | Same Quote; request fields are query parameters |
 | GET /transactions/:hash | TransactionStatus with finalized, ledger, XDR metadata and explorer URL |
 | GET /network/status | NetworkStatus with latest sequence/closeTime and configuration flags |
@@ -22,3 +23,5 @@ Quote includes network, kind, tokenIn/out, amountIn/out, minimumReceived, maximu
 Errors use `{error:{code,message}}`. 400 INVALID_REQUEST; 404 POOL_NOT_FOUND; 422 NO_LIQUIDITY, ROUTE_LIMIT or amount limits; 429 RATE_LIMITED; 503 NOT_CONFIGURED, WRONG_NETWORK, CONTRACT_NOT_FOUND, CONTRACT_MISMATCH, RPC_UNAVAILABLE, CONTRACT_INVOCATION_FAILED, INVALID_CHAIN_DATA, INCONSISTENT_STATE, STALE_STATE, QUOTE_MISMATCH or SERVICE_BUSY; 504 REQUEST_TIMEOUT. Unexpected errors are logged server-side with a generic 500 response. Never reinterpret RPC failures as empty markets.
 
 Transaction status is SUCCESS, FAILED or NOT_FOUND. SUCCESS/FAILED are finalized and contain result/meta XDR. NOT_FOUND is not proof of rejection: it may be pending, unknown or outside RPC retention. Poll with cancellation and bounded attempts. Network configuration flags indicate presence of config, not successful deployment verification.
+
+Swap preparation body is `{quote: QuoteRequest, publicKey: string}` with an Ed25519 public account, never a secret. The server computes a fresh quote, validates deployments/router parity and simulates the aggregator invocation. Response: `{network, aggregator, quote, transactionXdr, resourceFee, totalFee, ledger, requiresWalletSignature:true, submitted:false}`. Fees are stroop integer strings from simulation. RESTORATION_REQUIRED and SWAP_SIMULATION_FAILED return 422. The source account must exist and have sufficient balances. The wallet must decode and review the contract, limits, auth entries, fees and deadline, sign and submit itself. Simulation success is not execution finality. HTTP responses carry Cache-Control: no-store.
