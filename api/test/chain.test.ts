@@ -16,7 +16,7 @@ function transport(overrides:Partial<Transport>={}):Transport{
  read:async(id,method,args=[])=>{
   let value:unknown;
   switch(method){case 'get_factory':case 'factory':value=factory;break;case 'all_pairs_length':value=1;break;case 'all_pairs':value=pair;break;case 'token_0':value=A;break;case 'token_1':value=B;break;case 'get_reserves':value=[1000000n,2000000n];break;case 'symbol':value='T';break;case 'name':value='Test';break;case 'decimals':value=7;break;
-   case 'get_adapters':value=[{protocol_id:['Soroswap'],router,paused:false}];break;
+   case 'get_adapters':value=[{protocol_id:0,router,paused:false}];break;
    case 'router_get_amounts_out':value=[10000n,19743n];break;
    default:throw new Error('Unknown mock method '+method);
   }
@@ -52,7 +52,7 @@ test('rejects snapshots across ledgers, old RPC state, router quote mismatch, pa
  await assert.rejects(()=>new StellarChain(manifest,transport({latest:async()=>({sequence:123,closeTime:'1'})})).snapshot(),/too old/);
  const q=quote(quoteRequest.parse({tokenIn:A,tokenOut:B,amount:'10000'}),snapshot());
  await assert.rejects(()=>new StellarChain(manifest,transport({read:async()=>({value:[1n,2n],ledger:123})})).validateQuote(q),/differs/);
- await assert.rejects(()=>new StellarChain({...manifest,veltrixae:{aggregator,aggregatorWasmHash:hash}},transport({read:async(id,m,a)=>m==='get_adapters'?{value:[{protocol_id:['Soroswap'],router,paused:true}],ledger:123}:base.read(id,m,a)})).verifyDeployment(),/active matching/);
+ await assert.rejects(()=>new StellarChain({...manifest,veltrixae:{aggregator,aggregatorWasmHash:hash}},transport({read:async(id,m,a)=>m==='get_adapters'?{value:[{protocol_id:0,router,paused:true}],ledger:123}:base.read(id,m,a)})).verifyDeployment(),/active matching/);
 });
 test('cache coalesces concurrent requests and never caches failures',async()=>{
  const cache=new Cache<number>(100);let calls=0;

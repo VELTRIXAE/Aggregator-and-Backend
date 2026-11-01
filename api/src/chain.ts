@@ -103,7 +103,7 @@ export class StellarChain implements Chain {
         const v = this.manifest.veltrixae;
         await this.verify(v.aggregator,v.aggregatorWasmHash);
         const adapters = (await this.transport.read(v.aggregator, 'get_adapters')).value;
-        if (!Array.isArray(adapters) || !adapters.some(a => Array.isArray(a.protocol_id) && a.protocol_id[0] === 'Soroswap' && a.router === d.router && a.paused === false)) throw new ServiceError('CONTRACT_MISMATCH', 'Aggregator has no active matching Soroswap router');
+        if (!Array.isArray(adapters) || !adapters.some(a => a.protocol_id === 0 && a.router === d.router && a.paused === false)) throw new ServiceError('CONTRACT_MISMATCH', 'Aggregator has no active matching Soroswap router');
       }
       return {verified:true, network:'testnet', veltrixaeConfigured:!!this.manifest.veltrixae};
     });
@@ -203,7 +203,14 @@ export class StellarChain implements Chain {
     if (Date.now() >= quote.expiresAt) throw new ServiceError('QUOTE_EXPIRED','Refresh the quote',422);
     const target = this.manifest.veltrixae?.aggregator;
     if (!target) throw new ServiceError('NOT_CONFIGURED','VELTRIXAE aggregator is not configured');
-    const distribution = nativeToScVal([{protocol_id:xdr.ScVal.scvVec([xdr.ScVal.scvSymbol('Soroswap')]),path:quote.selectedRoute.path.map(p=>new Address(p).toScVal()),parts:nativeToScVal(1,{type:'u32'}),bytes:xdr.ScVal.scvVoid()}]);
+    // Rust #[contracttype] structs use Symbol keys, not the default String map keys.
+    const fields: [string, xdr.ScVal][] = [
+      ['bytes', xdr.ScVal.scvVoid()],
+      ['parts', nativeToScVal(1,{type:'u32'})],
+      ['path', nativeToScVal(quote.selectedRoute.path.map(p=>new Address(p).toScVal()))],
+      ['protocol_id', nativeToScVal(0,{type:'u32'})],
+    ];
+    const distribution = xdr.ScVal.scvVec([xdr.ScVal.scvMap(fields.map(([key,val])=>new xdr.ScMapEntry({key:xdr.ScVal.scvSymbol(key),val})))]);
     return new Contract(target).call(quote.kind==='exactIn'?'swap_exact_tokens_for_tokens':'swap_tokens_for_exact_tokens',
       new Address(quote.tokenIn).toScVal(),new Address(quote.tokenOut).toScVal(),nativeToScVal(BigInt(quote.kind==='exactIn'?quote.amountIn:quote.amountOut),{type:'i128'}),nativeToScVal(BigInt(quote.kind==='exactIn'?quote.minimumReceived:quote.maximumInput),{type:'i128'}),distribution,new Address(recipient).toScVal(),nativeToScVal(BigInt(Math.floor(quote.expiresAt/1000)),{type:'u64'}));
   }
