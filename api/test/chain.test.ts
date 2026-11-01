@@ -101,3 +101,8 @@ test('prepares only fresh server-derived quotes against a verified aggregator',a
  const mixed=new StellarChain(configured,transport({simulateSwap:async()=>({transactionXdr:'fixture',resourceFee:'1',totalFee:'101',ledger:124})}));
  await assert.rejects(()=>mixed.prepareSwap(req,publicKey),/different ledger/);
 });
+
+test('network status exposes stable fields instead of raw ledger and transaction metadata',async()=>{
+ const chain=new StellarChain(manifest,transport({latest:async()=>({sequence:123,closeTime:String(Math.floor(Date.now()/1000)),metadataXdr:{unrelated:'large ledger data'}})}));
+ assert.deepEqual(Object.keys(await chain.status()).sort(),['closeTime','network','sequence','soroswapConfigured','veltrixaeConfigured'].sort());
+});

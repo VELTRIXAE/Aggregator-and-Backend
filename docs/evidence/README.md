@@ -1,0 +1,11 @@
+# Read-only integration evidence
+
+Observed on 2026-11-01; revalidation is required before use.
+
+- `soroswap-core-testnet-candidate.json` matches the official file at https://github.com/soroswap/core/blob/bb90a65556d8eee0dc698ac75de0f280e547fedc/public/testnet.contracts.json. It is a candidate snapshot, never active application configuration.
+- `testnet-readiness-2026-11-01.json` is the output of `node --import tsx api/src/check-protocols.ts --soroswap-candidate docs/evidence/soroswap-core-testnet-candidate.json`. It contains actual read-only RPC observations, not transaction submissions, swap guarantees or VELTRIXAE deployment claims.
+- Contracts source inspection used https://github.com/VELTRIXAE/Contract/tree/c834dbe7efa42e64289ce8337ba2a37352220d9f. All 139 downloaded source files were compared byte-for-byte with the immutable revision archive. Required generated Factory/Router/Pair method signatures match the pinned compatible ABI. The repository has no published deployment record, and the user confirmed that contracts are not deployed yet.
+
+Aquarius constants were cross-checked against https://docs.aqua.network/developers/code-examples/prerequisites-and-basics. Phoenix candidates come from the pinned upstream custom testing deployment. No reviewed Comet Testnet ID was available. Absence of an accessible candidate is not a protocol-wide nonexistence claim.
+
+Do not activate these candidates, deploy, fund accounts/pools or push code based on this report. The active config/testnet.json remains unchanged.

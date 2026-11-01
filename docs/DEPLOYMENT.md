@@ -34,3 +34,7 @@ This first verifies the configured factory/router, builds WASM, deploys the stat
 Backend image: `docker build -f api/Dockerfile -t veltrixae-api .`. Start with `docker run --rm -p 3000:3000 veltrixae-api`. The image runs as node and health-checks process liveness. Mount a verified manifest before using quotations. Use TLS at a trusted ingress, gateway limits for multiple replicas and `/network/status` plus deployment verification for readiness. No deployment is run automatically by CI or this implementation.
 
 Rollback uses a reviewed manifest and prior image. Contract upgrades require separate authorization and ABI/security review; rolling back the API does not revert chain state. Testnet resets require new verified deployment records.
+
+## Live integration prerequisite
+
+Read [the readiness checklist](LIVE_INTEGRATION_READINESS.md) before using any deployment command. The inspected VELTRIXAE/Contract repository has no published deployments/testnet.json. Obtain authorized AMM deployment artifacts and a separately authorized aggregator deployment before live integration. The new importer verifies real exports and matching WASM using read-only RPC, writes only a new candidate when explicitly requested, and never overwrites the active manifest. Current public Soroswap discovery exceeds the 100-pool limit; that is not a substitute for missing VELTRIXAE deployment records. No deployment or push is authorized by documentation or tests.

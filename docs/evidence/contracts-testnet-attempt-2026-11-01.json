@@ -1,0 +1,58 @@
+{
+  "network": "testnet",
+  "checkedAt": "2026-11-01T23:36:13.396Z",
+  "factory": "CCBE2WCHO5PY6WVXTKZLIZA446M43RTOVD4S6XZYHPHJEL7K33LHW6RA",
+  "initialized": false,
+  "receipts": [
+    {
+      "operation": "pair_upload",
+      "txHash": "7bfc9d2277ffd53a9d401473308b8494d1e0cdb06d093e1cc001ca7d9836e4d9",
+      "status": "SUCCESS",
+      "ledger": 5510476,
+      "feeChargedStroops": "15982590"
+    },
+    {
+      "operation": "factory_upload",
+      "txHash": "981b5da90bd77e116839f40681f97f2171b2e659cb9500e0d8b1dfa1d5bc2c03",
+      "status": "SUCCESS",
+      "ledger": 5510477,
+      "feeChargedStroops": "5674156"
+    },
+    {
+      "operation": "router_upload",
+      "txHash": "d889ec70187cabeb42b2bde004b83e7404c21465fc68b4882328f2c437657cb5",
+      "status": "SUCCESS",
+      "ledger": 5510478,
+      "feeChargedStroops": "13141542"
+    },
+    {
+      "operation": "factory_deploy",
+      "txHash": "a8ff0145b02f4d825c75fbe986065090acbbd40beba24c122fd90a8d6acf4aef",
+      "status": "SUCCESS",
+      "ledger": 5510479,
+      "feeChargedStroops": "14898"
+    }
+  ],
+  "remainingSimulations": [
+    {
+      "operation": "factory_initialize",
+      "minResourceFeeStroops": "21582144",
+      "totalFeeStroops": "21582244",
+      "ledger": 5510506,
+      "submitted": false
+    },
+    {
+      "operation": "router_deploy",
+      "minResourceFeeStroops": "21353",
+      "totalFeeStroops": "21453",
+      "ledger": 5510506,
+      "submitted": false
+    }
+  ],
+  "completed": false,
+  "build_git_commit": "133b18d00505108c26382cb44045abab48b51882",
+  "deployer": "GCOK3K62FKMGHI4AJRRNEN6WJQUERE5ZPOHEKF6BB5M4GH3BDCQQMXFL",
+  "status": "INCOMPLETE_FEE_CAP_STOP",
+  "network_passphrase": "Test SDF Network ; September 2015",
+  "totalFeeChargedStroops": "34813186"
+}

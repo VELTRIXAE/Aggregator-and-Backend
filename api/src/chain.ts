@@ -170,7 +170,10 @@ export class StellarChain implements Chain {
     }));
   }
   async status() {
-    return this.guarded(async () => ({network:'testnet',...(await this.latest()),soroswapConfigured:!!this.manifest.soroswap,veltrixaeConfigured:!!this.manifest.veltrixae}));
+    return this.guarded(async () => {
+      const {sequence,closeTime}=await this.latest();
+      return {network:'testnet',sequence,closeTime,soroswapConfigured:!!this.manifest.soroswap,veltrixaeConfigured:!!this.manifest.veltrixae};
+    });
   }
   async transaction(hash: string) {
     return this.guarded(async () => {

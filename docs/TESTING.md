@@ -48,3 +48,33 @@ Manual deployment preparation has been TypeScript-compiled and shell syntax chec
 | Shell/OpenAPI | Script syntax checked; static OpenAPI generated without drift |
 
 No deployment, contract initialization, mainnet operation or Git push was performed. No full live VELTRIXAE swap was tested: reviewed deployment IDs, ABI artifacts and liquidity were not provided. The named public contracts repository lookup returned 404; this may indicate private or unavailable content, not proof that the repository does not exist. Source-preserved Phoenix/Aqua/Comet adapters pass their upstream tests, but only Soroswap-compatible pools are enabled in the API quote model.
+
+## Live-integration readiness follow-up (2026-11-01)
+
+The user confirmed that the VELTRIXAE contracts are **not deployed yet**. Read-only checks stop at that dependency. The actual source repository is VELTRIXAE/Contract, revision c834dbe7efa42e64289ce8337ba2a37352220d9f; it publishes no deployments/testnet.json. Offline required binding signatures passed for Factory/Router/Pair. This is not live deployed-VELTRIXAE verification.
+
+| Check in this follow-up | Actual result |
+| --- | --- |
+| npm run build | API and frontend client passed |
+| npm test | 28 API/chain/routing/importer tests and 1 frontend client test passed |
+| npm run test:contracts | 149 upstream Rust tests, 4 WASM authorization tests and 1 TypeScript ABI parity test passed; exit 0 |
+| RUN_TESTNET_TESTS=1 npm run test:rpc | Network/ledger passed; configured live liquidity/quote test explicitly skipped because deployments/tokens are absent |
+| npm audit --audit-level=moderate | Zero vulnerabilities reported |
+| npm run docs:api and generated-file diff | Passed; no OpenAPI drift |
+| Shell syntax and git diff --check | Passed |
+| npm run check:contracts-abi against inspected Contract source | Required Factory/Router/Pair signatures passed; no deployed-WASM claim |
+| npm run import:contracts against inspected source | Expected failure DEPLOYMENT_RECORD_MISSING, before RPC/output creation |
+| npm run verify:deployment with unchanged active config | Expected failure NOT_CONFIGURED |
+| npm run check:upstream | Historical candidate still fails CONTRACT_NOT_FOUND |
+| Current official Soroswap candidate | Factory/router WASM hashes, signatures and router link verified; 605 pools exceed discovery limit 100, so full discovery returned POOL_LIMIT; no successful current quote claimed |
+| Aquarius documented router | WASM present; pinned required swap signatures match; 343 token sets observed. Pool liquidity, full swap compatibility and execution not verified |
+
+New importer tests cover the actual contracts-export field mapping, unknown/private fields, wrong networks, source revision mismatch, artifact mismatch, ABI mismatch, fee setter and pair-registration mismatches, and refusal to create output when the deployment record is missing. Test IDs, transaction-hash strings and mock transports are explicitly synthetic and are never used as live evidence. Network status now exposes its intended typed fields instead of leaking large, unrelated raw ledger metadata returned by newer RPC responses. The API CI checkout initializes the pinned top-level upstream submodule because importer ABI tests read its bundled WASM; nested protocol builds retain their existing setup.
+
+No Rust contract source or upstream pin was changed. No deployment, funding, signing, submission, active-manifest change, new commit or push occurred in this follow-up. Deployment-side scripts in VELTRIXAE/Contract were inspected but not run. See [readiness and exact next steps](LIVE_INTEGRATION_READINESS.md) and [observation provenance](evidence/README.md).
+
+## Deployment-manifest interoperability follow-up
+
+The contracts exporter now includes an explicit Testnet passphrase, schema version, package versions and upload receipts. The importer accepts those known fields while retaining strict validation and rejects a wrong passphrase. The expanded backend test run passed 29 API/chain/routing/importer tests and 1 frontend client test; both workspaces built successfully. Contract ABI comparison against the inspected source bindings passed.
+
+A later user-approved Testnet attempt confirmed four transactions but stopped before Factory initialization at the per-transaction fee cap. The partial receipt report is evidence of those four transactions only. It is not a successful complete deployment, live quotation test, or reason to activate configuration. The Contracts push was denied by GitHub permissions; the local commits remain preserved.
