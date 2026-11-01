@@ -71,3 +71,33 @@ test('simulation source is public and SDK encodes read calls',()=>{
  const t=new StellarTransport('https://soroban-testnet.stellar.org',1000);assert.ok(t);
  assert.equal(scValToNative(nativeToScVal(1,{type:'u32'})),1);
 });
+
+test('rejects malformed and future RPC ledger timestamps even for network status',async()=>{
+ for(const closeTime of ['invalid',String(Math.floor(Date.now()/1000)+60)]) {
+  await assert.rejects(()=>new StellarChain(manifest,transport({latest:async()=>({sequence:123,closeTime})})).status(),(e:unknown)=>e instanceof ServiceError&&e.code==='INVALID_CHAIN_DATA');
+ }
+});
+test('manifest rejects ambiguous classic asset metadata and duplicate token contracts',()=>{
+ const valid={contract:A,native:true};
+ assert.ok(manifestSchema.safeParse({...manifest,assets:[valid]}).success);
+ for(const assets of [[{contract:A,code:'USD'}],[{contract:A,native:true,code:'XLM'}],[valid,valid]]) {
+  assert.equal(manifestSchema.safeParse({...manifest,assets}).success,false);
+ }
+});
+test('prepares only fresh server-derived quotes against a verified aggregator',async()=>{
+ let simulations=0;
+ const publicKey=StrKey.encodeEd25519PublicKey(Buffer.alloc(32,9));
+ const req=quoteRequest.parse({tokenIn:A,tokenOut:B,amount:'10000'});
+ const configured={...manifest,veltrixae:{aggregator,aggregatorWasmHash:hash}};
+ const chain=new StellarChain(configured,transport({simulateSwap:async(key,op,deadline)=>{
+  simulations++;assert.equal(key,publicKey);assert.ok(deadline>Date.now());assert.ok(op.toXDR().length>0);
+  return {transactionXdr:'unsigned-fixture-not-a-live-transaction',resourceFee:'123',totalFee:'223',ledger:123};
+ }}));
+ const prepared=await chain.prepareSwap(req,publicKey);
+ assert.equal(prepared.submitted,false);assert.equal(prepared.requiresWalletSignature,true);
+ assert.equal(prepared.aggregator,aggregator);assert.equal(prepared.quote.amountIn,'10000');assert.equal(simulations,1);
+ await assert.rejects(()=>new StellarChain(manifest,transport()).prepareSwap(req,publicKey),/verified VELTRIXAE/);
+ await assert.rejects(()=>chain.prepareSwap(req,'not a public key'),/public account/);
+ const mixed=new StellarChain(configured,transport({simulateSwap:async()=>({transactionXdr:'fixture',resourceFee:'1',totalFee:'101',ledger:124})}));
+ await assert.rejects(()=>mixed.prepareSwap(req,publicKey),/different ledger/);
+});

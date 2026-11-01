@@ -3,7 +3,7 @@ import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import swagger from '@fastify/swagger';
 import { z, ZodError } from 'zod';
-import { quoteRequest, contractId, ServiceError, type Chain } from './domain.js';
+import { prepareRequest, quoteRequest, contractId, ServiceError, type Chain } from './domain.js';
 import { quote } from './routing.js';
 const jsonObject = {type:'object',additionalProperties:true};
 const responses = {200:jsonObject,400:jsonObject,404:jsonObject,422:jsonObject,429:jsonObject,503:jsonObject,504:jsonObject};
@@ -14,6 +14,8 @@ export async function buildApp(chain: Chain, origins: string[] = [], logging = f
   await app.register(cors,{origin:origins,credentials:false,methods:['GET','POST']});
   await app.register(rateLimit,{max:60,timeWindow:'1 minute'});
   await app.register(swagger,{openapi:{info:{title:'VELTRIXAE Aggregator',version:'0.1.0',description:'Testnet discovery and indicative quotations. Amounts are integer strings in token base units.'}}});
+  // Reserve and quote responses must never be reused by browsers or shared HTTP caches.
+  app.addHook('onSend', async (_request, reply) => { reply.header('cache-control', 'no-store'); });
   let active = 0;
   async function bounded<T>(work: () => Promise<T>): Promise<T> {
     if (active >= 4) throw new ServiceError('SERVICE_BUSY','Too many blockchain requests; retry shortly');
@@ -55,6 +57,10 @@ export async function buildApp(chain: Chain, origins: string[] = [], logging = f
     });
   }
   app.post('/api/v1/quotes',{schema:{summary:'Fresh exact input or output quote; selected route checked by router simulation',body:quoteJson,response:responses}},async request=>quotation(request.body));
+  app.post('/api/v1/swaps/prepare', {schema:{summary:'Simulate a fresh swap and return unsigned wallet XDR; never submits', body:z.toJSONSchema(prepareRequest, {io:'input', target:'draft-7'}), response:responses}}, async request => {
+    const body = prepareRequest.parse(request.body);
+    return bounded(() => chain.prepareSwap(body.quote, body.publicKey));
+  });
   const routeQuery = structuredClone(quoteJson);
   routeQuery.properties!.maxHops = {type:'string',pattern:'^[1-3]$'};
   routeQuery.properties!.slippageBps = {type:'string',pattern:'^[0-9]{1,4}$'};

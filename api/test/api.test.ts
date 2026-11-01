@@ -8,7 +8,7 @@ test('all proposed read endpoints and OpenAPI are available',async()=>{
  try {
   for(const path of ['health','tokens','pools','markets','network/status','analytics/overview','transactions/'+ 'a'.repeat(64)]) assert.equal((await app.inject('/api/v1/'+path)).statusCode,200,path);
   const doc=(await app.inject('/api/v1/openapi.json')).json();
-  assert.equal(Object.keys(doc.paths).length,10);
+  assert.equal(Object.keys(doc.paths).length,11);
   assert.ok(doc.paths['/api/v1/quotes'].post.requestBody);
  }finally{await app.close();}
 });
@@ -37,5 +37,17 @@ test('restricts CORS and rate limits traffic',async()=>{
   const good=await app.inject({url:'/api/v1/health',headers:{origin:'https://frontend.example'}});assert.equal(good.headers['access-control-allow-origin'],'https://frontend.example');
   const bad=await app.inject({url:'/api/v1/health',headers:{origin:'https://evil.example'}});assert.equal(bad.headers['access-control-allow-origin'],undefined);
   let limited=false;for(let i=0;i<65;i++){if((await app.inject('/api/v1/health')).statusCode===429)limited=true;}assert.ok(limited);
+ }finally{await app.close();}
+});
+
+test('preparation rejects arbitrary XDR and secrets and never returns cacheable quotes',async()=>{
+ const app=await buildApp(fakeChain());
+ try{
+  const body={tokenIn:A,tokenOut:B,amount:'10000'};
+  const quote=await app.inject({method:'POST',url:'/api/v1/quotes',payload:body});
+  assert.equal(quote.headers['cache-control'],'no-store');
+  for(const payload of [{transactionXdr:'untrusted'},{quote:body,privateKey:'never'},{quote:body,publicKey:A}]) {
+   assert.equal((await app.inject({method:'POST',url:'/api/v1/swaps/prepare',payload})).statusCode,400);
+  }
  }finally{await app.close();}
 });

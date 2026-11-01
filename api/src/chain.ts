@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { Account, Address, Asset, Contract, Networks, StrKey, TransactionBuilder, nativeToScVal, rpc, scValToNative, xdr } from '@stellar/stellar-sdk';
-import { contractId, ServiceError, MAX_I128, type Chain, type Manifest, type Pool, type Snapshot, type Token } from './domain.js';
+import { quote } from './routing.js';
+import { contractId, ServiceError, MAX_I128, type Chain, type Manifest, type Pool, type Snapshot, type Token, type SimulatedSwap, type PreparedSwap, type QuoteRequest } from './domain.js';
 export interface ReadResult { value: unknown; ledger: number; }
 export interface Transport {
   network(): Promise<{passphrase: string}>;
@@ -8,6 +9,7 @@ export interface Transport {
   wasm(id: string): Promise<Uint8Array>;
   read(id: string, method: string, args?: xdr.ScVal[]): Promise<ReadResult>;
   transaction(hash: string): Promise<rpc.Api.GetTransactionResponse>;
+  simulateSwap?(publicKey: string, operation: xdr.Operation, expiresAt: number): Promise<SimulatedSwap>;
 }
 export class StellarTransport implements Transport {
   private server: rpc.Server;
@@ -22,6 +24,16 @@ export class StellarTransport implements Transport {
     }
   }
   transaction(hash: string) { return this.server.getTransaction(hash); }
+  async simulateSwap(publicKey: string, operation: xdr.Operation, expiresAt: number): Promise<SimulatedSwap> {
+    const account = await this.server.getAccount(publicKey);
+    const tx = new TransactionBuilder(account, {fee: '100', networkPassphrase: Networks.TESTNET})
+      .addOperation(operation).setTimebounds(0, Math.floor(expiresAt / 1000)).build();
+    const simulation = await this.server.simulateTransaction(tx);
+    if (rpc.Api.isSimulationRestore(simulation)) throw new ServiceError('RESTORATION_REQUIRED', 'Contract state requires restoration before swapping', 422);
+    if (!rpc.Api.isSimulationSuccess(simulation) || !simulation.result) throw new ServiceError('SWAP_SIMULATION_FAILED', 'Swap simulation failed; check balances, authorization, limits and contract state', 422);
+    const assembled = rpc.assembleTransaction(tx, simulation).build();
+    return {transactionXdr: assembled.toXDR(), resourceFee: simulation.minResourceFee, totalFee: assembled.fee, ledger: simulation.latestLedger};
+  }
   async read(id: string, method: string, args: xdr.ScVal[] = []): Promise<ReadResult> {
     // A public simulation source only: no signing key is generated, requested, or stored.
     const source = new Account(StrKey.encodeEd25519PublicKey(Buffer.alloc(32)), '0');
@@ -47,7 +59,11 @@ async function mapLimited<T, R>(items: T[], map: (item:T) => Promise<R>): Promis
   for (let i=0; i<items.length; i+=5) result.push(...await Promise.all(items.slice(i,i+5).map(map)));
   return result;
 }
-function id(value: unknown): string { return contractId.parse(value); }
+function id(value: unknown): string {
+  const result = contractId.safeParse(value);
+  if (!result.success) throw new ServiceError('INVALID_CHAIN_DATA', 'Invalid on-chain contract ID');
+  return result.data;
+}
 function integer(value: unknown): bigint {
   if ((typeof value !== 'bigint' && typeof value !== 'number') || (typeof value === 'number' && !Number.isSafeInteger(value))) throw new ServiceError('INVALID_CHAIN_DATA', 'Invalid on-chain integer');
   const n = BigInt(value); if (n < 0n || n > MAX_I128) throw new ServiceError('INVALID_CHAIN_DATA', 'Invalid on-chain amount'); return n;
@@ -65,6 +81,13 @@ export class StellarChain implements Chain {
       if (error instanceof ServiceError) throw error;
       throw new ServiceError('RPC_UNAVAILABLE', 'Unable to retrieve validated blockchain state');
     }
+  }
+  private async latest() {
+    const latest = await this.transport.latest();
+    const closed = Number(latest.closeTime) * 1000;
+    if (!Number.isSafeInteger(latest.sequence) || latest.sequence < 1 || !Number.isFinite(closed) || closed <= 0 || closed > Date.now() + 5000) throw new ServiceError('INVALID_CHAIN_DATA', 'Invalid RPC ledger metadata');
+    if (Date.now() - closed > 30000) throw new ServiceError('STALE_STATE', 'RPC state is too old');
+    return latest;
   }
   private async verify(id: string, hash: string) {
     const actual = createHash('sha256').update(await this.transport.wasm(id)).digest('hex');
@@ -107,9 +130,9 @@ export class StellarChain implements Chain {
         if (!Array.isArray(reserves.value) || reserves.value.length !== 2) throw new ServiceError('INVALID_CHAIN_DATA','Invalid reserves');
         return {id:poolId,protocol:'Soroswap',token0:id(t0.value),token1:id(t1.value),reserve0:integer(reserves.value[0]).toString(),reserve1:integer(reserves.value[1]).toString(),feeBps:30,ledger:ledgers[0]!,observedAt} satisfies Pool;
       });
-      const latest = await this.transport.latest();
+      const latest = await this.latest();
       if (new Set(pools.map(p => p.ledger)).size > 1 || pools.some(p => p.ledger !== latest.sequence)) throw new ServiceError('INCONSISTENT_STATE','Snapshot spans multiple ledgers; retry');
-      if (Date.now() - observedAt > 15000 || Date.now() - Number(latest.closeTime)*1000 > 30000) throw new ServiceError('STALE_STATE','RPC state is too old');
+      if (Date.now() - observedAt > 15000) throw new ServiceError('STALE_STATE','RPC state is too old');
       return {pools,ledger:latest.sequence,observedAt};
     });
   }
@@ -147,7 +170,7 @@ export class StellarChain implements Chain {
     }));
   }
   async status() {
-    return this.guarded(async () => ({network:'testnet',...(await this.transport.latest()),soroswapConfigured:!!this.manifest.soroswap,veltrixaeConfigured:!!this.manifest.veltrixae}));
+    return this.guarded(async () => ({network:'testnet',...(await this.latest()),soroswapConfigured:!!this.manifest.soroswap,veltrixaeConfigured:!!this.manifest.veltrixae}));
   }
   async transaction(hash: string) {
     return this.guarded(async () => {
@@ -158,6 +181,20 @@ export class StellarChain implements Chain {
         failure:tx.status==='FAILED'?String(tx.resultXdr.result.toXdrObject().code):null,
         explorerUrl:`https://stellar.expert/explorer/testnet/tx/${hash}`,
         note:tx.status==='NOT_FOUND'?'Not found in RPC retention window; may be pending, unknown, or pruned':null};
+    });
+  }
+  async prepareSwap(request: QuoteRequest, publicKey: string): Promise<PreparedSwap> {
+    if (!StrKey.isValidEd25519PublicKey(publicKey)) throw new ServiceError('INVALID_RECIPIENT', 'Expected a public account', 400);
+    return this.guarded(async () => {
+      if (!this.manifest.veltrixae) throw new ServiceError('NOT_CONFIGURED', 'A verified VELTRIXAE aggregator is required');
+      if (!this.transport.simulateSwap) throw new ServiceError('NOT_CONFIGURED', 'Swap simulation transport is unavailable');
+      // Accept request parameters, never a client-supplied quote or arbitrary XDR.
+      const estimate = quote(request, await this.snapshot());
+      await this.validateQuote(estimate);
+      const simulated = await this.transport.simulateSwap(publicKey, this.swapOperation(estimate, publicKey), estimate.expiresAt);
+      if (simulated.ledger !== estimate.ledger) throw new ServiceError('INCONSISTENT_STATE', 'Swap simulation uses a different ledger; retry');
+      if (Date.now() >= estimate.expiresAt) throw new ServiceError('QUOTE_EXPIRED', 'Refresh the quote', 422);
+      return {...simulated, network: 'testnet', aggregator: this.manifest.veltrixae.aggregator, quote: estimate, requiresWalletSignature: true, submitted: false};
     });
   }
   // Returns only an unsigned invocation operation. Wallet must assemble, simulate and sign.

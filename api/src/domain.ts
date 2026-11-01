@@ -12,13 +12,16 @@ export const quoteRequest = z.object({
   slippageBps: z.number().int().min(0).max(5000).default(50),
   maxHops: z.number().int().min(1).max(3).default(3),
 }).strict().refine(v => v.tokenIn !== v.tokenOut, 'Tokens must differ');
+export const prepareRequest = z.object({quote: quoteRequest, publicKey: z.string().refine(StrKey.isValidEd25519PublicKey, 'Expected a public account')}).strict();
+export interface SimulatedSwap { transactionXdr: string; resourceFee: string; totalFee: string; ledger: number; }
+export interface PreparedSwap extends SimulatedSwap { network: 'testnet'; aggregator: string; quote: Quote; requiresWalletSignature: true; submitted: false; }
 export type QuoteRequest = z.infer<typeof quoteRequest>;
 const hash = z.string().regex(/^[a-f0-9]{64}$/);
 const deployment = z.object({factory: contractId, router: contractId, factoryWasmHash: hash, routerWasmHash: hash, pairWasmHash: hash}).strict();
 export const manifestSchema = z.object({
   network: z.literal('testnet'), soroswap: deployment.nullable(),
   veltrixae: z.object({aggregator: contractId, aggregatorWasmHash: hash}).strict().nullable(),
-  assets: z.array(z.object({contract: contractId, code: z.string().regex(/^[a-zA-Z0-9]{1,12}$/).optional(), issuer: z.string().refine(StrKey.isValidEd25519PublicKey).optional(), native: z.boolean().optional()}).strict()).max(500),
+  assets: z.array(z.object({contract: contractId, code: z.string().regex(/^[a-zA-Z0-9]{1,12}$/).optional(), issuer: z.string().refine(StrKey.isValidEd25519PublicKey).optional(), native: z.boolean().optional()}).strict().refine(a => a.native === true ? a.code === undefined && a.issuer === undefined : !!a.code && !!a.issuer, 'Provide either native=true or both code and issuer')).max(500).refine(assets => new Set(assets.map(a => a.contract)).size === assets.length, 'Duplicate asset contracts'),
 }).strict();
 export type Manifest = z.infer<typeof manifestSchema>;
 export interface Token { contract: string; symbol: string; name: string; decimals: number; asset?: {code: string; issuer?: string}; verification: 'onchain-metadata-only'; }
@@ -29,6 +32,7 @@ export interface Quote { network: 'testnet'; kind: QuoteRequest['kind']; tokenIn
 export interface Chain {
   validateQuote(quote: Quote): Promise<void>; snapshot(): Promise<Snapshot>; tokens(): Promise<Token[]>; status(): Promise<unknown>;
   transaction(hash: string): Promise<unknown>;
+  prepareSwap(request: QuoteRequest, publicKey: string): Promise<PreparedSwap>;
 }
 export function bounded(value: bigint): bigint {
   if (value <= 0n || value > MAX_I128) throw new ServiceError('INSUFFICIENT_LIQUIDITY', 'Amount cannot be represented or rounds to zero', 422);
