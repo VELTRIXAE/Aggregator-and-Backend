@@ -1,0 +1,13 @@
+--- a/contracts/deployer/src/test.rs
++++ b/contracts/deployer/src/test.rs
+@@ -233,8 +233,8 @@
+     let adapter_address = Address::generate(&env);
+ 
+     let adapter = Adapter {
+-      protocol_id: String::from_str(&env, "soroswap"),
+-      address: adapter_address.clone(),
++      protocol_id: soroswap_aggregator_contract::Protocol::Soroswap,
++      router: adapter_address.clone(),
+       paused: false,
+   };
+ 
