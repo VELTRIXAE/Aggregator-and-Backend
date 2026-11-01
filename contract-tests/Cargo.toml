@@ -1,0 +1,9 @@
+[package]
+name = "veltrixae-contract-compatibility"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "MIT"
+
+[dev-dependencies]
+soroban-sdk = { version = "=22.0.7", features = ["testutils"] }
