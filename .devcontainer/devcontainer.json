@@ -1,0 +1,9 @@
+{
+ "name":"VELTRIXAE Aggregator",
+ "image":"mcr.microsoft.com/devcontainers/rust:1-bookworm",
+ "features":{"ghcr.io/devcontainers/features/node:1":{"version":"22"},"ghcr.io/devcontainers/features/docker-in-docker:2":{}},
+ "forwardPorts":[3000],
+ "portsAttributes":{"3000":{"label":"VELTRIXAE API","onAutoForward":"notify"}},
+ "postCreateCommand":"bash scripts/setup.sh",
+ "remoteEnv":{"HOST":"0.0.0.0"}
+}
