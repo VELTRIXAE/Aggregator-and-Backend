@@ -1,5 +1,5 @@
 name: VELTRIXAE checks
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 permissions:
   contents: read
 jobs:
@@ -14,8 +14,10 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --ignore-scripts
+      - run: npm run lint
       - run: npm run build
       - run: npm test
+      - run: npm run benchmark:routing
       - run: npm run docs:api
       - run: git diff --exit-code -- docs/openapi.json
       - run: npm audit --audit-level=moderate
@@ -27,3 +29,20 @@ jobs:
           submodules: false
       - run: bash scripts/setup.sh
       - run: npm run test:contracts
+
+  # Public, read-only Testnet checks; token-dependent quote parity remains explicitly opt-in.
+  testnet:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run test:rpc
+        env:
+          RUN_TESTNET_TESTS: '1'
