@@ -2,6 +2,8 @@
 
 Build the root workspaces and consume `@veltrixae/frontend-client` through a workspace dependency or a reviewed local package path. This repository does not modify an absent sibling frontend checkout.
 
+The active Testnet AMM is verified but currently has no pools, so `tokens()` returns an empty list and quotations return `NO_LIQUIDITY`. The separate aggregator is not configured, so `prepareSwap()` returns `NOT_CONFIGURED`. Treat both as explicit unavailable states in the UI. Enable trade controls only after the backend returns supported tokens and a fresh quote; do not add fallback token, reserve or price data.
+
 ```ts
 import { VeltrixaeClient, ApiError } from '@veltrixae/frontend-client';
 const api = new VeltrixaeClient('https://your-api.example', 25000);
@@ -22,4 +24,4 @@ Refresh quotes on token, amount or slippage changes. Cancel obsolete requests. D
 
 Use pools(), pool(id), markets(), routes(request), network() and overview() for the documented read responses. After wallet submission call monitorTransaction(hash, {signal, intervalMs:2000, maxAttempts:30}). SUCCESS and FAILED are final; NOT_FOUND may mean pending, pruned or unknown. Stop polling on navigation. Catch ApiError.code to distinguish invalid input, unavailable liquidity, expired state and RPC failures. The API never signs or submits on behalf of a wallet.
 
-For the configured VELTRIXAE aggregator use `api.prepareSwap(request, walletPublicKey, signal)`. It returns fresh quote limits and unsigned transactionXdr plus simulated resourceFee/totalFee in stroops. Have the wallet decode and review it, including authorization, target, fees and expiry, before signing and submitting to Testnet. Never send signed envelopes or private keys to this API. A ledger change during preparation fails and requires a fresh attempt.
+After a VELTRIXAE aggregator is deployed, verified and configured, use `api.prepareSwap(request, walletPublicKey, signal)`. It returns fresh quote limits and unsigned transactionXdr plus simulated resourceFee/totalFee in stroops. Have the wallet decode and review it, including authorization, target, fees and expiry, before signing and submitting to Testnet. Never send signed envelopes or private keys to this API. A ledger change during preparation fails and requires a fresh attempt.

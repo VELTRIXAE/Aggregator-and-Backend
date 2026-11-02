@@ -11,6 +11,7 @@ Use the included Codespaces configuration, or install Rust 1.84, Node.js 22 and 
 ```sh
 bash scripts/setup.sh
 cp .env.example .env
+npm run lint
 npm run build
 npm test
 npm run dev
@@ -18,7 +19,9 @@ npm run dev
 
 Health: `http://localhost:3000/api/v1/health`. OpenAPI: `/api/v1/openapi.json`.
 
-The default manifest intentionally contains no deployment addresses. Health can succeed while quote requests return `NOT_CONFIGURED`. Provide reviewed Testnet IDs and WASM hashes in `config/testnet.json`, then run `npm run verify:deployment`. The historical upstream candidate was checked and is missing or archived; it is not enabled. No VELTRIXAE contracts deployment was supplied. The actual contracts project is VELTRIXAE/Contract; its inspected revision publishes no Testnet deployment record. Current official Soroswap IDs are live but its 605-pool factory exceeds this backend's 100-pool discovery limit. See the [live integration readiness checklist](docs/LIVE_INTEGRATION_READINESS.md) for evidence, exact required artifacts and the read-only importer. A subsequent authorized Testnet attempt confirmed code uploads and Factory creation, but initialization stopped at the fee cap. The deployment remains incomplete; see the readiness report.
+The checked-in manifest references the verified VELTRIXAE Testnet Factory and Router. The November 2 deployment is complete; its real manifest, code hashes and receipts are preserved in docs/evidence. Run `npm run verify:deployment` to recheck live state. The Factory currently has zero pools and the separate aggregator is not deployed: quotes return `NO_LIQUIDITY`, and swap preparation returns `NOT_CONFIGURED`. No synthetic liquidity is returned. See [Testnet setup](docs/TESTNET_SETUP.md), [backend audit](docs/BACKEND_AUDIT.md) and [contract integration](docs/CONTRACT_INTEGRATION.md).
+
+Discovery uses configurable bounded index batches and global RPC limits. It requires complete fresh observations on one ledger and fails explicitly if a factory cannot fit the collection budget; increasing the cap alone does not solve that limit.
 
 Use `@veltrixae/frontend-client` in veltrixae-frontend. Integrate veltrixae-contracts through the reviewed manifest and existing ABI, as described in [contract integration](docs/CONTRACT_INTEGRATION.md). Signing stays in the wallet. Quotes are estimates with integer base-unit amounts, never guaranteed execution.
 
@@ -28,6 +31,7 @@ Use `@veltrixae/frontend-client` in veltrixae-frontend. Integrate veltrixae-cont
 - [Aggregation](docs/AGGREGATION.md), [routing](docs/ROUTING.md), [API](docs/API.md)
 - [Frontend](docs/FRONTEND_INTEGRATION.md), [contract integration](docs/CONTRACT_INTEGRATION.md)
 - [Deployment and environment](docs/DEPLOYMENT.md), [testing](docs/TESTING.md)
+- [Original contributions and measurements](docs/ORIGINAL_CONTRIBUTIONS.md), [changelog](CHANGELOG.md)
 - [Contributing](CONTRIBUTING.md), [security](SECURITY.md), [upstream attribution](docs/UPSTREAM_ATTRIBUTION.md)
 
 The root MIT license is preserved. Upstream has its own Apache-2.0 license and GPL-3.0 Cargo declarations; review both before distribution. No upstream license is replaced by branding.

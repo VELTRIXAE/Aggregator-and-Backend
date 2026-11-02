@@ -4,7 +4,7 @@ Requests use checksummed Soroban token contract IDs and decimal integer strings 
 
 For exact input, pinned Soroswap charges `ceil(input * 3 / 1000)` and computes `floor((input-fee)*reserveOut/(reserveIn+input-fee))`. Exact output uses `ceil(reserveIn*out*1000/((reserveOut-out)*997))+1`, matching the pinned library rather than a generic AMM approximation. Intermediates must fit contract i128 limits.
 
-Exact-input routes sort by descending output; exact-output routes sort by ascending required input. Ties prefer fewer hops. Overflow, zero-rounded and insufficient-reserve paths are discarded. No surviving path yields NO_LIQUIDITY. The selected route is compared to router simulation before the API returns it.
+Exact-input routes sort by descending output; exact-output routes sort by ascending required input. Ties prefer fewer hops, then lexicographically ordered pool IDs so enumeration order cannot change the result. Token adjacency is indexed before traversal; unrelated pools are not scanned at every search state. Overflow, zero-rounded and insufficient-reserve paths are discarded. No surviving path yields NO_LIQUIDITY. The selected route is compared to router simulation before the API returns it.
 
 Minimum received for exact input is `floor(output*(10000-slippageBps)/10000)`. Maximum input for exact output is `ceil(input*(10000+slippageBps)/10000)`. Exact-output minimum remains the requested output. Limits must fit i128. Integer fees are returned per hop in that hop's input token and must not be summed across unlike tokens.
 

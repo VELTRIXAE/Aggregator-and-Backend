@@ -84,3 +84,21 @@ A later user-approved Testnet attempt confirmed four transactions but stopped be
 The remote main branch subsequently merged Soroban SDK 29.0.1 for the standalone contract-tests harness, TypeScript 7 and rate-limit 11. These updates are preserved. SDK 29 declares rust-version=1.91.0, so the harness now uses its own pinned Rust 1.99.1 toolchain; the unchanged upstream contract workspace still builds with Rust 1.84. Setup installs both toolchains, and the runner selects the harness compiler explicitly. This is a test-host migration, not a deployed contract SDK change. The API checkout keeps remote actions/checkout v7 while initializing the pinned upstream submodule required by ABI tests.
 
 The remote SDK 29 harness passed all four WASM compatibility tests on Rust 1.99.1. TypeScript 7/rate-limit 11 build and all 30 API/frontend tests passed; OpenAPI export has no drift. Latest deployment state is checkpointed in NEXT_SESSION.md after the user explicitly paused further transactions.
+
+## Current verification — 2026-11-02
+
+The later authorized resume completed the AMM deployment. The active manifest now contains the verified Factory and Router; the Factory is initialized and the Router points to it. Read-only import and live checks observed zero pools. The separate aggregator remains absent, so quote parity and full swap execution are still unavailable.
+
+| Check | Result |
+| --- | --- |
+| npm run lint / npm run build | Both workspaces passed |
+| npm test | 42 API/config/chain/routing/import tests and 1 frontend client test passed |
+| Focused 101-pool discovery regression | Complete discovery passed in batches of 3; configured cap failure and timeout behavior passed |
+| npm run test:contracts | 145 upstream Rust tests, 4 SDK 29 WASM authorization tests and 1 compiled-spec TypeScript ABI test passed |
+| RUN_TESTNET_TESTS=1 npm run test:rpc | Network and verified empty-factory discovery passed; funded-route quote test skipped because no pool/token route exists |
+| npm run verify:deployment | AMM verified; pool snapshot empty; aggregator configuration false |
+| npm audit --audit-level=moderate | Zero vulnerabilities reported |
+| Docker build/start/health | Production image built; container became healthy; health, network status and empty pools returned HTTP 200 |
+| Routing operation benchmark | 1000-pool synthetic graph: 2000 flat pool checks versus 4 indexed edge checks plus 1000 index-build visits; operation counts only |
+
+Historical sections above record what was true at each earlier checkpoint. This section and NEXT_SESSION.md describe the current state.

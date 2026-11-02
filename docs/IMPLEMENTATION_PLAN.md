@@ -33,3 +33,5 @@ The workspace has no veltrixae-contracts or veltrixae-frontend checkout and no v
 | 10 operations/docs | Codespaces, manual Testnet deployment, Docker validation, Dependabot and requested documentation |
 
 No protocol deployment is inferred from source presence. Live cross-protocol aggregation and external VELTRIXAE contract/frontend checkout integration remain conditional on reviewed artifacts and current Testnet liquidity. The shipped API prices Soroswap-compatible pools only. No deployment or Git push was performed.
+
+Current-state update: the later authorized VELTRIXAE AMM deployment completed on 2026-11-02 and its verified Factory/Router configuration is active. The historical plan above predates that event. There are still no pools, separate aggregator or live swap verification.
