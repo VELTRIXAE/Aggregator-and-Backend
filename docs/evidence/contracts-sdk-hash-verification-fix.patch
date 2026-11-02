@@ -1,0 +1,26 @@
+diff --git a/tools/deployment/lib.mjs b/tools/deployment/lib.mjs
+index a8fb78a..5245858 100644
+--- a/tools/deployment/lib.mjs
++++ b/tools/deployment/lib.mjs
+@@ -34,7 +34,7 @@ export async function verifyManifest(m,io){
+  const receipts={};
+  for(const [role,c]of Object.entries(m.contracts)){
+   const expected=role==='pair'?c.wasm_hash:c.wasm_sha256;
+-  const code=role==='pair'?await io.server.getContractWasmByHash(expected):await io.server.getContractWasmByContractId(c.id);
++  const code=role==='pair'?await io.server.getContractWasmByHash(Buffer.from(expected,'hex')):await io.server.getContractWasmByContractId(c.id);
+   ensure(digest(code)===expected,`${role} deployed WASM differs from record`);
+   for(const stage of role==='pair'?['upload']:['upload','deploy','initialize']){
+    const txHash=c[`${stage}_tx`];const receipt=await io.receipt(txHash);ensure(receipt.status==='SUCCESS',`${role} ${stage} receipt is not successful or outside RPC retention`);
+diff --git a/tools/deployment/test/deployment.test.mjs b/tools/deployment/test/deployment.test.mjs
+index 907483f..2244a75 100644
+--- a/tools/deployment/test/deployment.test.mjs
++++ b/tools/deployment/test/deployment.test.mjs
+@@ -16,7 +16,7 @@ const success=(value,n=1)=>({status:'SUCCESS',txHash:n.toString(16).padStart(64,
+ function fixture(overrides={}){
+  const history=new Map();let count=0;
+  const server={getNetwork:async()=>({passphrase:PASSPHRASE}),getLatestLedger:async()=>({sequence:123,closeTime:String(Math.floor(Date.now()/1000))}),
+-  getContractWasmByContractId:async cid=>cid===id(1)?artifacts.factory:artifacts.router,getContractWasmByHash:async()=>artifacts.pair};
++  getContractWasmByContractId:async cid=>cid===id(1)?artifacts.factory:artifacts.router,getContractWasmByHash:async hash=>{assert.ok(Buffer.isBuffer(hash));assert.equal(hash.length,32);assert.equal(hash.toString('hex'),digest(artifacts.pair));return artifacts.pair;}};
+  const io={server,assertReceipt:async()=>{},receipt:async tx=>history.get(tx),read:async(_id,method)=>method==='fee_to_setter'?account:id(1),
+   submit:async(label)=>{
+    let value;

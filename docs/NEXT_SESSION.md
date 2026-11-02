@@ -1,17 +1,21 @@
-# Resume checkpoint — deployment paused by user
+# Resume checkpoint — AMM Testnet deployment complete
 
-The user asked to commit/push completed work and stop deployment for the night. Do not submit more deployment transactions automatically.
+Verified on 2026-11-02. All seven transactions succeeded. Do not repeat deployment or initialization.
 
-## Confirmed Testnet state
+- Factory: CCBE2WCHO5PY6WVXTKZLIZA446M43RTOVD4S6XZYHPHJEL7K33LHW6RA, initialized with the reviewed fee setter.
+- Router: CDSNTA4DH5CXDJJMY4QQ6IUF2M3VLR2WVPCL3UUQMCVUDQ5ZHVYWUZA4, initialized and linked to that Factory.
+- Router initialization: 74c6c3fbbd59b56a5882185d2ee64236705a8f633bce5bb42ad4a738d8b90993, ledger 5515146, fee 43516969 stroops.
+- Cumulative charged fees: 97114662 stroops (9.7114662 Testnet XLM). User approved 60000000 stroops per transaction and 140000000 total including prior fees.
+- All seven receipt envelopes, code hashes, Factory fee setter and Router Factory link were verified read-only after completion.
+- No pools/liquidity or aggregator deployment. Active backend configuration is unchanged. Those next steps require their separately scoped authorization.
 
-- Six successful transactions: Pair/Factory/Router code uploads, Factory deployment, Factory initialization, Router deployment.
-- Factory: CCBE2WCHO5PY6WVXTKZLIZA446M43RTOVD4S6XZYHPHJEL7K33LHW6RA.
-- Router: CDSNTA4DH5CXDJJMY4QQ6IUF2M3VLR2WVPCL3UUQMCVUDQ5ZHVYWUZA4.
-- Factory initialized; Router initialization pending. No pools/liquidity or aggregator deployment.
-- Actual charged fees: 53597693 stroops (5.3597693 Testnet XLM).
-- Router initialization simulation: 49487909 stroops; approved per-transaction cap is only 30000000. It was not signed or submitted. Overall approved maximum remains 140000000 stroops.
-- Real receipts and original build commit: docs/evidence/contracts-testnet-attempt-2026-11-01.json. Use these to resume; do not repeat confirmed work.
-- No completed deployments/testnet.json exists; do not fabricate one or activate backend config/testnet.json.
+## Durable artifacts
+
+- Completed real manifest: docs/evidence/contracts-testnet-deployment-2026-11-02.json. In the contracts checkout this is deployments/testnet.json.
+- Complete receipt/fee checkpoint: docs/evidence/contracts-testnet-completion-2026-11-02.json. The November 1 attempt remains historical evidence.
+- Exact optimized deployment WASM: docs/evidence/contracts-testnet-wasm-2026-11-02.tar.gz. Rebuilt WASM matched the original uploads exactly.
+- Verification fix and regression assertion: docs/evidence/contracts-sdk-hash-verification-fix.patch. The SDK requires a 32-byte Buffer for getContractWasmByHash, rather than a hex string. Router initialization succeeded before this verification error; finalization reused all receipts without signing or submitting anything further.
+- Deployment-tool tests passed after the fix, before the manifest was written. The existing wrapper test assumes the checkout has no completed manifest.
 
 ## Source and Git recovery
 
@@ -26,8 +30,9 @@ git switch -c work/testnet-deployment-readiness FETCH_HEAD
 
 Secrets remain in the Stellar CLI keystore, never the bundle or either repository. Identity: veltrixae-deployer. Public source/fee setter: GCOK3K62FKMGHI4AJRRNEN6WJQUERE5ZPOHEKF6BB5M4GH3BDCQQMXFL. Configure the existing CLI identity locally; never print or request its secret material.
 
-## Checks already run
 
-Contracts: 253 Rust tests, seven deployment-tool tests, Clippy correctness and three bindings builds passed. Backend: updated remote TypeScript 7/rate-limit dependencies built and 29 API plus one frontend tests passed. Remote SDK 29 test-host update was preserved; its four WASM tests passed using separate Rust 1.99.1 (SDK requires >=1.91). Upstream contracts remain on Rust 1.84. Generated OpenAPI has no drift.
+## Recovery after temporary-directory cleanup
 
-Before a later deployment resume, recheck on-chain state and fee estimates read-only. Router initialization needs an explicitly approved higher per-transaction cap if the estimate is still above 3 XLM. Preserve the total budget including prior charges. No Mainnet deployment or push to an unapproved alternate repository is authorized.
+Recover the contracts branch from the bundle as above, apply the saved SDK verification patch, restore the completed manifest to deployments/testnet.json, and extract the WASM archive to target/wasm32v1-none/release. The hash fix is currently uncommitted in the temporary contracts checkout and preserved as a patch here. No push was attempted this session.
+
+The completed manifest retains original build commit 133b18d00505108c26382cb44045abab48b51882. Recheck Testnet state read-only before any backend import or subsequent separately authorized deployment. Never use the old six-receipt attempt to resume now that initialization is complete.

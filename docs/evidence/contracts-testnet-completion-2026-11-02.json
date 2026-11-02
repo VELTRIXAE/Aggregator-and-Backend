@@ -1,0 +1,68 @@
+{
+  "network": "testnet",
+  "checkedAt": "2026-11-02T06:03:52.393Z",
+  "factory": "CCBE2WCHO5PY6WVXTKZLIZA446M43RTOVD4S6XZYHPHJEL7K33LHW6RA",
+  "initialized": true,
+  "receipts": [
+    {
+      "operation": "pair_upload",
+      "txHash": "7bfc9d2277ffd53a9d401473308b8494d1e0cdb06d093e1cc001ca7d9836e4d9",
+      "status": "SUCCESS",
+      "ledger": 5510476,
+      "feeChargedStroops": "15982590"
+    },
+    {
+      "operation": "factory_upload",
+      "txHash": "981b5da90bd77e116839f40681f97f2171b2e659cb9500e0d8b1dfa1d5bc2c03",
+      "status": "SUCCESS",
+      "ledger": 5510477,
+      "feeChargedStroops": "5674156"
+    },
+    {
+      "operation": "router_upload",
+      "txHash": "d889ec70187cabeb42b2bde004b83e7404c21465fc68b4882328f2c437657cb5",
+      "status": "SUCCESS",
+      "ledger": 5510478,
+      "feeChargedStroops": "13141542"
+    },
+    {
+      "operation": "factory_deploy",
+      "txHash": "a8ff0145b02f4d825c75fbe986065090acbbd40beba24c122fd90a8d6acf4aef",
+      "status": "SUCCESS",
+      "ledger": 5510479,
+      "feeChargedStroops": "14898"
+    },
+    {
+      "operation": "factory_initialize",
+      "txHash": "6163766dce774f96180a27802052349838bb8b7cbcac37050c279264191c8511",
+      "status": "SUCCESS",
+      "ledger": 5510634,
+      "feeChargedStroops": "18769580"
+    },
+    {
+      "operation": "router_deploy",
+      "txHash": "46c46fc26fbf9dc3ec799172ccdbf13645f7e8184e229d01e776b085744c7bba",
+      "status": "SUCCESS",
+      "ledger": 5510635,
+      "feeChargedStroops": "14927"
+    },
+    {
+      "operation": "router_initialize",
+      "txHash": "74c6c3fbbd59b56a5882185d2ee64236705a8f633bce5bb42ad4a738d8b90993",
+      "status": "SUCCESS",
+      "ledger": 5515146,
+      "feeChargedStroops": "43516969"
+    }
+  ],
+  "completed": true,
+  "build_git_commit": "133b18d00505108c26382cb44045abab48b51882",
+  "deployer": "GCOK3K62FKMGHI4AJRRNEN6WJQUERE5ZPOHEKF6BB5M4GH3BDCQQMXFL",
+  "status": "COMPLETE_VERIFIED",
+  "network_passphrase": "Test SDF Network ; September 2015",
+  "totalFeeChargedStroops": "97114662",
+  "router": "CDSNTA4DH5CXDJJMY4QQ6IUF2M3VLR2WVPCL3UUQMCVUDQ5ZHVYWUZA4",
+  "factoryInitialized": true,
+  "routerInitialized": true,
+  "approvedPerTransactionCapStroops": "60000000",
+  "totalBudgetStroops": "140000000"
+}

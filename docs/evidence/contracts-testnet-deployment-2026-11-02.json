@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "network": "testnet",
+  "network_passphrase": "Test SDF Network ; September 2015",
+  "git_commit": "133b18d00505108c26382cb44045abab48b51882",
+  "deployer": "GCOK3K62FKMGHI4AJRRNEN6WJQUERE5ZPOHEKF6BB5M4GH3BDCQQMXFL",
+  "fee_to_setter": "GCOK3K62FKMGHI4AJRRNEN6WJQUERE5ZPOHEKF6BB5M4GH3BDCQQMXFL",
+  "version_source": "cargo-package-version",
+  "contracts": {
+    "pair": {
+      "version": "0.0.1",
+      "upload_tx": "7bfc9d2277ffd53a9d401473308b8494d1e0cdb06d093e1cc001ca7d9836e4d9",
+      "wasm_hash": "26c28c1a76d1c4a2eee6db570be26424cfa16d3aa9de6a24ce2d27d346d915ad"
+    },
+    "factory": {
+      "version": "0.0.2",
+      "upload_tx": "981b5da90bd77e116839f40681f97f2171b2e659cb9500e0d8b1dfa1d5bc2c03",
+      "wasm_sha256": "469d6366d0be2b431466c6530b9f2418c30d765ab9dcbf33cc51f7265d53afa0",
+      "id": "CCBE2WCHO5PY6WVXTKZLIZA446M43RTOVD4S6XZYHPHJEL7K33LHW6RA",
+      "deploy_tx": "a8ff0145b02f4d825c75fbe986065090acbbd40beba24c122fd90a8d6acf4aef",
+      "initialize_tx": "6163766dce774f96180a27802052349838bb8b7cbcac37050c279264191c8511"
+    },
+    "router": {
+      "version": "0.0.1",
+      "upload_tx": "d889ec70187cabeb42b2bde004b83e7404c21465fc68b4882328f2c437657cb5",
+      "wasm_sha256": "4c1edf7f3a7b9fa659f69c35e6803e95f4a3b4467c1ab1543e87147b7f9b8c17",
+      "id": "CDSNTA4DH5CXDJJMY4QQ6IUF2M3VLR2WVPCL3UUQMCVUDQ5ZHVYWUZA4",
+      "deploy_tx": "46c46fc26fbf9dc3ec799172ccdbf13645f7e8184e229d01e776b085744c7bba",
+      "initialize_tx": "74c6c3fbbd59b56a5882185d2ee64236705a8f633bce5bb42ad4a738d8b90993"
+    }
+  },
+  "pools": [],
+  "deployed_at": "2026-11-02T06:03:52.393Z"
+}
