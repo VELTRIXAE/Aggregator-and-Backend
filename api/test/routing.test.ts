@@ -45,3 +45,30 @@ test('large values beyond Number safe range remain precise',()=>{
   const q=quote(req({amount:'9007199254740993'}),snapshot([pool(address(4),A,B,'1000000000000000000','2000000000000000000')]));
   assert.equal(q.amountOut,output(9007199254740993n,10n**18n,2n*10n**18n).toString());
 });
+
+test('equal-price route selection is stable across factory enumeration order',()=>{
+  const first=pool(address(7)),second=pool(address(8));
+  const a=quote(req(),snapshot([second,first]));
+  const b=quote(req(),snapshot([first,second]));
+  assert.deepEqual(a.routes,b.routes);
+});
+test('quote expiry is rejected at the exact deadline',()=>{
+  const s=snapshot();
+  assert.throws(()=>quote(req(),s,s.observedAt+15000),/too old/);
+});
+test('indexed route search inspects only connected edges',async()=>{
+  const {findRoutes}=await import('../src/routing.js');
+  const disconnected=Array.from({length:100},(_,i)=>pool(address(i+20),address(200),address(201)));
+  const stats={states:0,poolChecks:0};
+  const routes=findRoutes(req(),[pool(),...disconnected],stats);
+  assert.equal(routes.length,1);assert.equal(stats.poolChecks,1);assert.equal(stats.states,2);
+});
+test('exact input is monotonic and exact output funds the requested amount for a bounded integer grid',()=>{
+  for(const reserve of [10000n,1000000n,9007199254740993n]) {
+    let previous=0n;
+    for(const n of [10n,100n,1000n]) {
+      const got=output(n,reserve,reserve*2n);assert.ok(got>=previous);previous=got;
+      assert.ok(output(input(n,reserve,reserve*2n),reserve,reserve*2n)>=n);
+    }
+  }
+});

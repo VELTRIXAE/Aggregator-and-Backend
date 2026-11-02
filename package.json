@@ -20,7 +20,9 @@
     "test:abi": "node --import tsx --test api/test/contract-abi.contract.ts",
     "import:contracts": "node --import tsx api/src/import-deployment.ts",
     "check:contracts-abi": "node --import tsx api/src/check-contract-interfaces.ts",
-    "check:protocols": "node --import tsx api/src/check-protocols.ts"
+    "check:protocols": "node --import tsx api/src/check-protocols.ts",
+    "lint": "npm run lint --workspaces",
+    "benchmark:routing": "node --import tsx api/bench/routing.ts"
   },
   "engines": {
     "node": ">=22"

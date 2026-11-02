@@ -18,10 +18,18 @@ function reserves(pool: Pool, from: string): [bigint, bigint] {
   if (from !== pool.token0 && from !== pool.token1) throw new ServiceError('INVALID_ROUTE', 'Pool does not contain token', 422);
   return from === pool.token0 ? [BigInt(pool.reserve0), BigInt(pool.reserve1)] : [BigInt(pool.reserve1), BigInt(pool.reserve0)];
 }
-export function findRoutes(req: QuoteRequest, pools: Pool[]): Route[] {
+export interface RouteSearchStats { states: number; poolChecks: number; }
+export function findRoutes(req: QuoteRequest, pools: Pool[], stats?: RouteSearchStats): Route[] {
+  const adjacency = new Map<string, Pool[]>();
+  for (const pool of pools) for (const token of [pool.token0,pool.token1]) {
+    const neighbors = adjacency.get(token) ?? [];
+    neighbors.push(pool); adjacency.set(token,neighbors);
+  }
+  if (stats) { stats.states = 0; stats.poolChecks = 0; }
   const routes: Route[] = [];
   let explored = 0;
   function walk(path: string[], used: Pool[]) {
+    if (stats) stats.states++;
     if (++explored > 10000) throw new ServiceError('ROUTE_LIMIT', 'Route search exceeds configured complexity limit', 422);
     const last = path.at(-1)!;
     if (last === req.tokenOut) {
@@ -45,7 +53,8 @@ export function findRoutes(req: QuoteRequest, pools: Pool[]): Route[] {
       return;
     }
     if (used.length >= req.maxHops) return;
-    for (const p of pools) {
+    for (const p of adjacency.get(last) ?? []) {
+      if (stats) stats.poolChecks++;
       if (p.token0 !== last && p.token1 !== last) continue;
       const next = p.token0 === last ? p.token1 : p.token0;
       if (path.includes(next) || used.some(u => u.id === p.id)) continue;
@@ -55,11 +64,12 @@ export function findRoutes(req: QuoteRequest, pools: Pool[]): Route[] {
   walk([req.tokenIn], []);
   return routes.sort((a,b) => {
     const x = BigInt(req.kind === 'exactIn' ? a.amountOut : a.amountIn), y = BigInt(req.kind === 'exactIn' ? b.amountOut : b.amountIn);
-    return x === y ? a.pools.length - b.pools.length : (x > y ? 1 : -1) * (req.kind === 'exactIn' ? -1 : 1);
+    const keyA = a.pools.join('/'), keyB = b.pools.join('/');
+    return x === y ? a.pools.length - b.pools.length || (keyA < keyB ? -1 : keyA > keyB ? 1 : 0) : (x > y ? 1 : -1) * (req.kind === 'exactIn' ? -1 : 1);
   }).slice(0, 20);
 }
 export function quote(req: QuoteRequest, snapshot: Snapshot, now = Date.now()): Quote {
-  if (now - snapshot.observedAt > 15000 || snapshot.observedAt > now) throw new ServiceError('STALE_STATE', 'Pool snapshot is too old');
+  if (now - snapshot.observedAt >= 15000 || snapshot.observedAt > now) throw new ServiceError('STALE_STATE', 'Pool snapshot is too old');
   const routes = findRoutes(req, snapshot.pools), selectedRoute = routes[0];
   if (!selectedRoute) throw new ServiceError('NO_LIQUIDITY', 'No supported route for this amount', 422);
   const {amountIn, amountOut} = selectedRoute;

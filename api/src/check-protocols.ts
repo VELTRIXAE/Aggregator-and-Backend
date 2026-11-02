@@ -24,7 +24,7 @@ if(values['soroswap-candidate']){
  candidate=manifestSchema.parse({network:'testnet',soroswap:{factory:data.ids.factory,router:data.ids.router,factoryWasmHash:data.hashes.factory,routerWasmHash:data.hashes.router,pairWasmHash:data.hashes.pair},veltrixae:null,assets:[]}).soroswap;
  for(const role of ['factory','router']as const)probes.push({name:`Soroswap candidate ${role}`,id:candidate![role],role,expectedHash:candidate![`${role}WasmHash`],source:values['soroswap-candidate']});
 }
-const {chain}=await loadConfig();const network=await chain.status();
+const {chain,env}=await loadConfig();const network=await chain.status();
 const results=await Promise.all(probes.map(async probe=>{
  try{
   const wasm=await chain.transport.wasm(probe.id),spec=contract.Spec.fromWasm(wasm);
@@ -49,7 +49,7 @@ if(candidate){
  try{
   const factory=(await chain.transport.read(candidate.router,'get_factory')).value;
   const count=(await chain.transport.read(candidate.factory,'all_pairs_length')).value;
-  candidateState={routerFactoryMatches:factory===candidate.factory,poolCount:String(count),backendDiscoveryLimit:100,fullDiscoveryWithinLimit:typeof count==='number'?count<=100:typeof count==='bigint'?count<=100n:false};
+  candidateState={routerFactoryMatches:factory===candidate.factory,poolCount:String(count),backendDiscoveryLimit:env.MAX_DISCOVERY_POOLS,poolCountWithinConfiguredLimit:typeof count==='number'?count<=env.MAX_DISCOVERY_POOLS:typeof count==='bigint'?count<=BigInt(env.MAX_DISCOVERY_POOLS):false,fullDiscoveryVerified:false};
  }catch(error){candidateState={error:(error as {code?:string}).code??'RPC_ERROR'};}
 }
 console.log(JSON.stringify({checkedAt:new Date().toISOString(),network,results,candidateState,comet:{status:'NO_REVIEWED_TESTNET_ID',liquidityVerified:false},activated:false,submitted:false},null,2));

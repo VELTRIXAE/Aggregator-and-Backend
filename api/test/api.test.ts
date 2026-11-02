@@ -51,3 +51,14 @@ test('preparation rejects arbitrary XDR and secrets and never returns cacheable 
   }
  }finally{await app.close();}
 });
+
+test('unknown endpoints and malformed or oversized bodies use the standard error envelope',async()=>{
+ const app=await buildApp(fakeChain());
+ try {
+  const missing=await app.inject('/api/v1/unknown');assert.equal(missing.statusCode,404);assert.equal(missing.json().error.code,'NOT_FOUND');
+  for(const payload of ['{bad',JSON.stringify({padding:'x'.repeat(17000)})]) {
+   const response=await app.inject({method:'POST',url:'/api/v1/quotes',headers:{'content-type':'application/json'},payload});
+   assert.ok([400,413].includes(response.statusCode));assert.equal(response.json().error.code,'INVALID_REQUEST');
+  }
+ } finally {await app.close();}
+});

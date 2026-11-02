@@ -15,7 +15,7 @@ function transport(overrides:Partial<Transport>={}):Transport{
  transaction:async()=>({status:'NOT_FOUND',latestLedger:123} as rpc.Api.GetTransactionResponse),
  read:async(id,method,args=[])=>{
   let value:unknown;
-  switch(method){case 'get_factory':case 'factory':value=factory;break;case 'all_pairs_length':value=1;break;case 'all_pairs':value=pair;break;case 'token_0':value=A;break;case 'token_1':value=B;break;case 'get_reserves':value=[1000000n,2000000n];break;case 'symbol':value='T';break;case 'name':value='Test';break;case 'decimals':value=7;break;
+  switch(method){case 'get_factory':case 'factory':value=factory;break;case 'all_pairs_length':value=1;break;case 'get_pair':case 'all_pairs':value=pair;break;case 'token_0':value=A;break;case 'token_1':value=B;break;case 'get_reserves':value=[1000000n,2000000n];break;case 'symbol':value='T';break;case 'name':value='Test';break;case 'decimals':value=7;break;
    case 'get_adapters':value=[{protocol_id:0,router,paused:false}];break;
    case 'router_get_amounts_out':value=[10000n,19743n];break;
    default:throw new Error('Unknown mock method '+method);
@@ -105,4 +105,46 @@ test('prepares only fresh server-derived quotes against a verified aggregator',a
 test('network status exposes stable fields instead of raw ledger and transaction metadata',async()=>{
  const chain=new StellarChain(manifest,transport({latest:async()=>({sequence:123,closeTime:String(Math.floor(Date.now()/1000)),metadataXdr:{unrelated:'large ledger data'}})}));
  assert.deepEqual(Object.keys(await chain.status()).sort(),['closeTime','network','sequence','soroswapConfigured','veltrixaeConfigured'].sort());
+});
+
+test('coalesces concurrent snapshots but refreshes reserves after they complete',async()=>{
+ const base=transport();let reserves=0;
+ const chain=new StellarChain(manifest,transport({read:async(id,m,a)=>{if(m==='get_reserves')reserves++;return base.read(id,m,a);}}));
+ const values=await Promise.all([chain.snapshot(),chain.snapshot(),chain.snapshot()]);
+ assert.equal(reserves,1);assert.deepEqual(values[0],values[1]);
+ await chain.snapshot();assert.equal(reserves,2);
+});
+test('configurable discovery handles more than 100 pools in bounded batches and fails closed at cap',async()=>{
+ const count=101;const base=transport();let pending=0,maxPending=0,indices:number[]=[];
+ const custom=transport({read:async(id,m,a)=>{
+  if(m==='all_pairs_length')return {value:count,ledger:123};
+  if(m==='all_pairs') {
+   const index=scValToNative(a![0]!);indices.push(index);pending++;maxPending=Math.max(maxPending,pending);
+   await new Promise(resolve=>setTimeout(resolve,1));pending--;return {value:address(index+100),ledger:123};
+  }
+  if(m==='get_pair')return {value:scValToNative(a![1]!),ledger:123};
+  if(m==='token_1')return {value:id,ledger:123};
+  return base.read(id,m,a);
+ }});
+ const snapshot=await new StellarChain(manifest,custom,{maxPools:101,pageSize:3}).snapshot();
+ assert.equal(snapshot.pools.length,101);assert.equal(snapshot.ledger,123);
+ assert.equal(indices.length,101);assert.equal(new Set(indices).size,101);assert.ok(maxPending<=3);
+ indices=[];
+ await assert.rejects(()=>new StellarChain(manifest,custom,{maxPools:100}).snapshot(),/MAX_DISCOVERY_POOLS/);
+ assert.equal(indices.length,0);
+});
+test('rejects forged registration, duplicate pools and discovery budget exhaustion',async()=>{
+ const base=transport();
+ await assert.rejects(()=>new StellarChain(manifest,transport({read:async(id,m,a)=>m==='get_pair'?{value:address(99),ledger:123}:base.read(id,m,a)})).snapshot(),/not registered/);
+ await assert.rejects(()=>new StellarChain(manifest,transport({read:async(id,m,a)=>m==='all_pairs_length'?{value:2,ledger:123}:base.read(id,m,a)})).snapshot(),/duplicate pools/);
+ const slow=transport({read:async(id,m,a)=>{if(m==='all_pairs_length')await new Promise(resolve=>setTimeout(resolve,110));return base.read(id,m,a);}});
+ await assert.rejects(()=>new StellarChain(manifest,slow,{timeoutMs:100}).snapshot(),(e:unknown)=>e instanceof ServiceError&&e.code==='DISCOVERY_TIMEOUT');
+});
+
+test('read transport distinguishes archived-state restoration from ordinary invocation errors',async()=>{
+ const t=new StellarTransport('https://soroban-testnet.stellar.org',1000);
+ Object.assign(t,{server:{simulateTransaction:async()=>({transactionData:{},restorePreamble:{transactionData:{}}})}});
+ await assert.rejects(()=>t.read(factory,'all_pairs_length'),(e:unknown)=>e instanceof ServiceError&&e.code==='RESTORATION_REQUIRED');
+ Object.assign(t,{server:{simulateTransaction:async()=>({error:'private diagnostic not returned'})}});
+ await assert.rejects(()=>t.read(factory,'all_pairs_length'),(e:unknown)=>e instanceof ServiceError&&e.code==='CONTRACT_INVOCATION_FAILED'&&!e.message.includes('private diagnostic'));
 });

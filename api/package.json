@@ -9,7 +9,8 @@
     "start": "node dist/main.js",
     "test": "node --import tsx --test test/*.test.ts",
     "test:rpc": "node --import tsx --test test/*.integration.ts",
-    "verify": "node --import tsx src/verify.ts"
+    "verify": "node --import tsx src/verify.ts",
+    "lint": "tsc -p tsconfig.json --noEmit --noUnusedLocals --noUnusedParameters"
   },
   "dependencies": {
     "@fastify/cors": "^11.0.0",

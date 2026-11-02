@@ -10,7 +10,7 @@ const responses = {200:jsonObject,400:jsonObject,404:jsonObject,422:jsonObject,4
 const quoteJson = z.toJSONSchema(quoteRequest, {io:'input',target:'draft-7'});
 // Zod refinements (checksums and distinct tokens) are applied again in handlers.
 export async function buildApp(chain: Chain, origins: string[] = [], logging = false) {
-  const app = Fastify({logger:logging,ajv:{customOptions:{removeAdditional:false,coerceTypes:false}},bodyLimit:16384,requestTimeout:25000,connectionTimeout:30000});
+  const app = Fastify({logger:logging ? {serializers:{req: (request: {method: string}) => ({method:request.method})}} : false,ajv:{customOptions:{removeAdditional:false,coerceTypes:false}},bodyLimit:16384,requestTimeout:25000,connectionTimeout:30000});
   await app.register(cors,{origin:origins,credentials:false,methods:['GET','POST']});
   await app.register(rateLimit,{max:60,timeWindow:'1 minute'});
   await app.register(swagger,{openapi:{info:{title:'VELTRIXAE Aggregator',version:'0.1.0',description:'Testnet discovery and indicative quotations. Amounts are integer strings in token base units.'}}});
@@ -31,9 +31,10 @@ export async function buildApp(chain: Chain, origins: string[] = [], logging = f
     if (error instanceof ServiceError) return reply.code(error.status).send({error:{code:error.code,message:error.message}});
     const statusCode = (error as FastifyError).statusCode;
     const status = typeof statusCode === 'number' && statusCode >=400 && statusCode<500 ? statusCode : 500;
-    if (status === 500) request.log.error(error);
+    if (status === 500) request.log.error({code:'INTERNAL_ERROR',requestId:request.id},'Unexpected service error');
     return reply.code(status!).send({error:{code:status===429?'RATE_LIMITED':status===500?'INTERNAL_ERROR':'INVALID_REQUEST',message:status===500?'Unexpected service error':'Request rejected'}});
   });
+  app.setNotFoundHandler((_request,reply) => reply.code(404).send({error:{code:'NOT_FOUND',message:'Endpoint not found'}}));
   app.get('/api/v1/health',{schema:{summary:'Process liveness; does not imply chain readiness',response:responses}},async()=>({status:'ok',service:'VELTRIXAE Aggregator',network:'testnet'}));
   app.get('/api/v1/network/status',{schema:{summary:'Live RPC network and latest ledger',response:responses}},async()=>bounded(()=>chain.status()));
   app.get('/api/v1/tokens',{schema:{summary:'On-chain metadata; no trust or issuer endorsement',response:responses}},async()=>({tokens:await bounded(()=>chain.tokens())}));

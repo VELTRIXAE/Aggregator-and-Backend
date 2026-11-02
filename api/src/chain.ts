@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { Account, Address, Asset, Contract, Networks, StrKey, TransactionBuilder, nativeToScVal, rpc, scValToNative, xdr } from '@stellar/stellar-sdk';
 import { quote } from './routing.js';
+import { RpcLimiter } from './limits.js';
 import { contractId, ServiceError, MAX_I128, type Chain, type Manifest, type Pool, type Snapshot, type Token, type SimulatedSwap, type PreparedSwap, type QuoteRequest } from './domain.js';
 export interface ReadResult { value: unknown; ledger: number; }
 export interface Transport {
@@ -13,22 +14,23 @@ export interface Transport {
 }
 export class StellarTransport implements Transport {
   private server: rpc.Server;
-  constructor(url: string, timeout: number) { this.server = new rpc.Server(url, {timeout}); }
-  network() { return this.server.getNetwork(); }
-  latest() { return this.server.getLatestLedger(); }
+  private limiter: RpcLimiter;
+  constructor(url: string, timeout: number, concurrency = 5) { this.server = new rpc.Server(url, {timeout}); this.limiter = new RpcLimiter(concurrency, 64, timeout); }
+  network() { return this.limiter.run(() => this.server.getNetwork()); }
+  latest() { return this.limiter.run(() => this.server.getLatestLedger()); }
   async wasm(id: string) {
-    try { return await this.server.getContractWasmByContractId(id); }
+    try { return await this.limiter.run(() => this.server.getContractWasmByContractId(id)); }
     catch (error) {
       if ((error as {code?:number}).code === 404) throw new ServiceError('CONTRACT_NOT_FOUND','Contract or its WASM is missing or archived on Testnet');
       throw error;
     }
   }
-  transaction(hash: string) { return this.server.getTransaction(hash); }
+  transaction(hash: string) { return this.limiter.run(() => this.server.getTransaction(hash)); }
   async simulateSwap(publicKey: string, operation: xdr.Operation, expiresAt: number): Promise<SimulatedSwap> {
-    const account = await this.server.getAccount(publicKey);
+    const account = await this.limiter.run(() => this.server.getAccount(publicKey));
     const tx = new TransactionBuilder(account, {fee: '100', networkPassphrase: Networks.TESTNET})
       .addOperation(operation).setTimebounds(0, Math.floor(expiresAt / 1000)).build();
-    const simulation = await this.server.simulateTransaction(tx);
+    const simulation = await this.limiter.run(() => this.server.simulateTransaction(tx));
     if (rpc.Api.isSimulationRestore(simulation)) throw new ServiceError('RESTORATION_REQUIRED', 'Contract state requires restoration before swapping', 422);
     if (!rpc.Api.isSimulationSuccess(simulation) || !simulation.result) throw new ServiceError('SWAP_SIMULATION_FAILED', 'Swap simulation failed; check balances, authorization, limits and contract state', 422);
     const assembled = rpc.assembleTransaction(tx, simulation).build();
@@ -39,7 +41,8 @@ export class StellarTransport implements Transport {
     const source = new Account(StrKey.encodeEd25519PublicKey(Buffer.alloc(32)), '0');
     const tx = new TransactionBuilder(source, {fee:'100', networkPassphrase: Networks.TESTNET})
       .addOperation(new Contract(id).call(method, ...args)).setTimeout(30).build();
-    const simulation = await this.server.simulateTransaction(tx);
+    const simulation = await this.limiter.run(() => this.server.simulateTransaction(tx));
+    if (rpc.Api.isSimulationRestore(simulation)) throw new ServiceError('RESTORATION_REQUIRED', 'Contract state requires restoration before reading');
     if (!rpc.Api.isSimulationSuccess(simulation) || !simulation.result) throw new ServiceError('CONTRACT_INVOCATION_FAILED', `Read simulation failed for ${method}`);
     return {value: scValToNative(simulation.result.retval), ledger: simulation.latestLedger};
   }
@@ -54,9 +57,12 @@ export class Cache<T> {
     try { return await this.pending; } finally { this.pending = undefined; }
   }
 }
-async function mapLimited<T, R>(items: T[], map: (item:T) => Promise<R>): Promise<R[]> {
+async function mapLimited<T, R>(items: T[], map: (item:T) => Promise<R>, deadline = Infinity, batchSize = 5): Promise<R[]> {
   const result: R[] = [];
-  for (let i=0; i<items.length; i+=5) result.push(...await Promise.all(items.slice(i,i+5).map(map)));
+  for (let i=0; i<items.length; i+=batchSize) {
+    if (Date.now() >= deadline) throw new ServiceError('DISCOVERY_TIMEOUT', 'Pool collection exceeded its time budget; use a smaller factory or an indexer', 504);
+    result.push(...await Promise.all(items.slice(i,i+batchSize).map(map)));
+  }
   return result;
 }
 function id(value: unknown): string {
@@ -68,10 +74,19 @@ function integer(value: unknown): bigint {
   if ((typeof value !== 'bigint' && typeof value !== 'number') || (typeof value === 'number' && !Number.isSafeInteger(value))) throw new ServiceError('INVALID_CHAIN_DATA', 'Invalid on-chain integer');
   const n = BigInt(value); if (n < 0n || n > MAX_I128) throw new ServiceError('INVALID_CHAIN_DATA', 'Invalid on-chain amount'); return n;
 }
+export interface DiscoveryOptions { maxPools: number; pageSize: number; timeoutMs: number; }
 export class StellarChain implements Chain {
   private discovery = new Cache<string[]>(60000);
   private metadata = new Cache<Token[]>(300000);
-  constructor(public manifest: Manifest, public transport: Transport) {}
+  private snapshots = new Cache<Snapshot>(0);
+  private options: DiscoveryOptions;
+  constructor(public manifest: Manifest, public transport: Transport, options: Partial<DiscoveryOptions> = {}) {
+    this.options = {maxPools: 1000, pageSize: 5, timeoutMs: 15000, ...options};
+    for (const [key, min, max] of [['maxPools', 1, 1000], ['pageSize', 1, 20], ['timeoutMs', 100, 15000]] as const) {
+      const n = this.options[key];
+      if (!Number.isInteger(n) || n < min || n > max) throw new Error(`Invalid discovery ${key}`);
+    }
+  }
   private async guarded<T>(action: () => Promise<T>): Promise<T> {
     try {
       const net = await this.transport.network();
@@ -109,13 +124,14 @@ export class StellarChain implements Chain {
     });
   }
   async snapshot(): Promise<Snapshot> {
-    return this.guarded(async () => {
+    return this.snapshots.get(() => this.guarded(async () => {
+      const deadline = Date.now() + this.options.timeoutMs;
       await this.verifyDeployment();
       const d = this.manifest.soroswap!;
       const ids = await this.discovery.get(async () => {
         const n = integer((await this.transport.read(d.factory,'all_pairs_length')).value);
-        if (n > 100n) throw new ServiceError('POOL_LIMIT', 'Factory exceeds the 100-pool discovery limit; configure an indexer');
-        return mapLimited(Array.from({length:Number(n)}, (_,i) => i), async i => id((await this.transport.read(d.factory,'all_pairs',[nativeToScVal(i,{type:'u32'})])).value));
+        if (n > BigInt(this.options.maxPools)) throw new ServiceError('POOL_LIMIT', `Factory exceeds configured MAX_DISCOVERY_POOLS (${this.options.maxPools}); use an indexer or review the bounded configuration`);
+        return mapLimited(Array.from({length:Number(n)}, (_,i) => i), async i => id((await this.transport.read(d.factory,'all_pairs',[nativeToScVal(i,{type:'u32'})])).value), deadline, this.options.pageSize);
       });
       if (new Set(ids).size !== ids.length) throw new ServiceError('INVALID_CHAIN_DATA', 'Factory returned duplicate pools');
       // Discovery may be cached. Reserves never are: every quote reads them again.
@@ -123,18 +139,21 @@ export class StellarChain implements Chain {
       const pools = await mapLimited(ids, async (poolId: string) => {
         await this.verify(poolId,d.pairWasmHash);
         const results = await Promise.all(['token_0','token_1','get_reserves','factory'].map(method => this.transport.read(poolId,method)));
+        const registered = await this.transport.read(d.factory,'get_pair',[new Address(id(results[0]!.value)).toScVal(),new Address(id(results[1]!.value)).toScVal()]);
+        if (id(registered.value) !== poolId) throw new ServiceError('CONTRACT_MISMATCH', 'Pool is not registered for its tokens');
         const [t0,t1,reserves,factory] = results as [ReadResult,ReadResult,ReadResult,ReadResult];
         if (id(factory.value) !== d.factory || id(t0.value) === id(t1.value)) throw new ServiceError('CONTRACT_MISMATCH', 'Invalid pair identity');
-        const ledgers = results.map(r => r.ledger);
+        const ledgers = [...results,registered].map(r => r.ledger);
         if (new Set(ledgers).size !== 1) throw new ServiceError('INCONSISTENT_STATE','Pool reads span multiple ledgers; retry');
         if (!Array.isArray(reserves.value) || reserves.value.length !== 2) throw new ServiceError('INVALID_CHAIN_DATA','Invalid reserves');
         return {id:poolId,protocol:'Soroswap',token0:id(t0.value),token1:id(t1.value),reserve0:integer(reserves.value[0]).toString(),reserve1:integer(reserves.value[1]).toString(),feeBps:30,ledger:ledgers[0]!,observedAt} satisfies Pool;
-      });
+      }, deadline);
       const latest = await this.latest();
       if (new Set(pools.map(p => p.ledger)).size > 1 || pools.some(p => p.ledger !== latest.sequence)) throw new ServiceError('INCONSISTENT_STATE','Snapshot spans multiple ledgers; retry');
-      if (Date.now() - observedAt > 15000) throw new ServiceError('STALE_STATE','RPC state is too old');
+      if (Date.now() >= deadline) throw new ServiceError('DISCOVERY_TIMEOUT', 'Pool collection exceeded its time budget', 504);
+      if (Date.now() - observedAt >= 15000) throw new ServiceError('STALE_STATE','RPC state is too old');
       return {pools,ledger:latest.sequence,observedAt};
-    });
+    }));
   }
   async validateQuote(quote: import('./domain.js').Quote): Promise<void> {
     await this.guarded(async () => {
@@ -152,6 +171,7 @@ export class StellarChain implements Chain {
   }
   async tokens(): Promise<Token[]> {
     return this.metadata.get(() => this.guarded(async () => {
+      const deadline = Date.now() + this.options.timeoutMs;
       const snap = await this.snapshot();
       const ids = [...new Set([...snap.pools.flatMap(p => [p.token0,p.token1]),...this.manifest.assets.map(a=>a.contract)])];
       return mapLimited(ids, async token => {
@@ -166,7 +186,7 @@ export class StellarChain implements Chain {
           asset = configured.native ? {code:'XLM'} : {code:configured.code!,issuer:configured.issuer!};
         }
         return {contract:token,symbol:symbol!.value,name:name!.value,decimals:Number(precision),asset,verification:'onchain-metadata-only'};
-      });
+      }, deadline);
     }));
   }
   async status() {

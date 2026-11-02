@@ -1,6 +1,12 @@
 {
   "network": "testnet",
-  "soroswap": null,
+  "soroswap": {
+    "factory": "CCBE2WCHO5PY6WVXTKZLIZA446M43RTOVD4S6XZYHPHJEL7K33LHW6RA",
+    "router": "CDSNTA4DH5CXDJJMY4QQ6IUF2M3VLR2WVPCL3UUQMCVUDQ5ZHVYWUZA4",
+    "factoryWasmHash": "469d6366d0be2b431466c6530b9f2418c30d765ab9dcbf33cc51f7265d53afa0",
+    "routerWasmHash": "4c1edf7f3a7b9fa659f69c35e6803e95f4a3b4467c1ab1543e87147b7f9b8c17",
+    "pairWasmHash": "26c28c1a76d1c4a2eee6db570be26424cfa16d3aa9de6a24ce2d27d346d915ad"
+  },
   "veltrixae": null,
   "assets": []
 }
