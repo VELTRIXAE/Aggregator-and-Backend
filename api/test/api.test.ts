@@ -88,3 +88,26 @@ test('no route accepts signed transactions for submission',async()=>{
   assert.equal(paths.some(p=>/submit|send|broadcast|sign/i.test(p)),false);
  }finally{await app.close();}
 });
+
+async function limitedAfter(app:Awaited<ReturnType<typeof buildApp>>,forwardedFor:string,remoteAddress:string){
+ let last=0;
+ for(let i=0;i<61;i++)last=(await app.inject({url:'/api/v1/health',remoteAddress,headers:{'x-forwarded-for':forwardedFor}})).statusCode;
+ return last;
+}
+test('forged forwarded headers cannot evade rate limits by default',async()=>{
+ const app=await buildApp(fakeChain());
+ try{
+  let last=0;
+  for(let i=0;i<61;i++)last=(await app.inject({url:'/api/v1/health',remoteAddress:'203.0.113.9',headers:{'x-forwarded-for':'198.51.100.'+i}})).statusCode;
+  assert.equal(last,429);
+ }finally{await app.close();}
+});
+test('a listed proxy gives each client its own rate limit, and an unlisted one does not',async()=>{
+ const app=await buildApp(fakeChain(),[],false,['10.0.0.1']);
+ try{
+  assert.equal(await limitedAfter(app,'198.51.100.1','10.0.0.1'),429);
+  assert.equal((await app.inject({url:'/api/v1/health',remoteAddress:'10.0.0.1',headers:{'x-forwarded-for':'198.51.100.2'}})).statusCode,200);
+  assert.equal(await limitedAfter(app,'198.51.100.3','203.0.113.5'),429);
+  assert.equal((await app.inject({url:'/api/v1/health',remoteAddress:'203.0.113.5',headers:{'x-forwarded-for':'198.51.100.4'}})).statusCode,429);
+ }finally{await app.close();}
+});

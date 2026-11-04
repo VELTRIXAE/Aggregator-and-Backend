@@ -24,6 +24,7 @@ The server binds 127.0.0.1:3000 by default. Set HOST=0.0.0.0 in a container. GET
 | RPC_CONCURRENCY | 5 | 1–10 concurrent transport operations; at most 64 queued |
 | DEPLOYMENTS_FILE | config/testnet.json | JSON manifest, relative to repository root or absolute mount path |
 | CORS_ORIGINS | empty | Comma-separated exact origins; no credentials support |
+| TRUSTED_PROXIES | empty | Comma-separated proxy IPs or CIDR ranges allowed to set X-Forwarded-For. Empty trusts none, so behind a proxy all clients share one rate limit. Never list untrusted networks, because forged headers would then evade limits |
 | MAX_DISCOVERY_POOLS | 1000 | 1–1000; complete factory enumeration must fit this cap |
 | DISCOVERY_PAGE_SIZE | 5 | 1–20 indexed all_pairs calls per discovery batch; global RPC limiter still applies |
 | DISCOVERY_TIMEOUT_MS | 15000 | 100–15000 ms discovery, snapshot and metadata collection budget; no new batches after expiration |
