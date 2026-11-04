@@ -8,6 +8,7 @@ export interface Quote {network:'testnet';kind:'exactIn'|'exactOut';tokenIn:stri
 export interface PreparedSwap { transactionXdr:string;resourceFee:string;totalFee:string;ledger:number;network:'testnet';aggregator:string;quote:Quote;requiresWalletSignature:true;submitted:false; }
 export interface TransactionStatus {hash:string;network:'testnet';status:'SUCCESS'|'FAILED'|'NOT_FOUND';finalized:boolean;ledger:number|null;latestLedger:number;resultXdr:string|null;metadataXdr:string|null;failure:string|null;explorerUrl:string;note:string|null;}
 export interface NetworkStatus {network:'testnet';sequence:number;closeTime:string;soroswapConfigured:boolean;veltrixaeConfigured:boolean;}
+export interface Readiness {network:'testnet';mainnetEnabled:false;custody:'none';submitsTransactions:false;checkedAt:number;ledger:number|null;networkVerified:boolean;deployment:{status:'verified'|'not-configured'|'failed';code:string|null};liquidity:{status:'funded'|'unfunded'|'empty'|'unknown';pools:number|null;fundedPools:number|null;code:string|null};aggregator:{status:'not-deployed'|'verified'|'unknown'};quotesAvailable:boolean;swapPreparationAvailable:boolean;blockers:string[];}
 export interface Market {pool:string;protocol:'Soroswap';token0:string;token1:string;feeBps:number;spotRatio:{numerator:string;denominator:string};ratioUnits:string;}
 export interface Overview {network:'testnet';ledger:number;observedAt:number;poolCount:number;tokenCount:number;protocols:string[];historicalVolume:null;tvlUsd:null;historyAvailable:false;}
 export class ApiError extends Error {constructor(public status:number,public code:string,message:string){super(message);}}
@@ -32,6 +33,7 @@ export class VeltrixaeClient {
  }
  markets(signal?:AbortSignal){return this.request<{ledger:number;observedAt:number;markets:Market[]}>('markets',undefined,signal);}
  transaction(hash:string,signal?:AbortSignal){return this.request<TransactionStatus>('transactions/'+encodeURIComponent(hash),undefined,signal);}
+ readiness(signal?:AbortSignal){return this.request<Readiness>('readiness',undefined,signal);}
  network(signal?:AbortSignal){return this.request<NetworkStatus>('network/status',undefined,signal);}
  overview(signal?:AbortSignal){return this.request<Overview>('analytics/overview',undefined,signal);}
  async monitorTransaction(hash:string,options:{signal?:AbortSignal;intervalMs?:number;maxAttempts?:number}={}):Promise<TransactionStatus>{

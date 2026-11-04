@@ -2,13 +2,14 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {buildApp} from '../src/app.js';
 import {ServiceError} from '../src/domain.js';
+import {StrKey} from '@stellar/stellar-sdk';
 import {A,B,fakeChain} from './fixtures.js';
 test('all proposed read endpoints and OpenAPI are available',async()=>{
  const app=await buildApp(fakeChain());
  try {
-  for(const path of ['health','tokens','pools','markets','network/status','analytics/overview','transactions/'+ 'a'.repeat(64)]) assert.equal((await app.inject('/api/v1/'+path)).statusCode,200,path);
+  for(const path of ['health','readiness','tokens','pools','markets','network/status','analytics/overview','transactions/'+ 'a'.repeat(64)]) assert.equal((await app.inject('/api/v1/'+path)).statusCode,200,path);
   const doc=(await app.inject('/api/v1/openapi.json')).json();
-  assert.equal(Object.keys(doc.paths).length,11);
+  assert.equal(Object.keys(doc.paths).length,12);
   assert.ok(doc.paths['/api/v1/quotes'].post.requestBody);
  }finally{await app.close();}
 });
@@ -61,4 +62,29 @@ test('unknown endpoints and malformed or oversized bodies use the standard error
    assert.ok([400,413].includes(response.statusCode));assert.equal(response.json().error.code,'INVALID_REQUEST');
   }
  } finally {await app.close();}
+});
+
+test('an empty CORS allowlist grants no browser origin',async()=>{
+ const app=await buildApp(fakeChain());
+ try{
+  const response=await app.inject({url:'/api/v1/health',headers:{origin:'https://frontend.example'}});
+  assert.equal(response.headers['access-control-allow-origin'],undefined);
+ }finally{await app.close();}
+});
+test('readiness exposes disabled mainnet and blockers, and swap preparation carries no signature',async()=>{
+ const unsigned={transactionXdr:'unsigned-fixture',resourceFee:'1',totalFee:'2',ledger:123,network:'testnet',aggregator:A,requiresWalletSignature:true,submitted:false} as const;
+ const app=await buildApp(fakeChain({prepareSwap:async()=>({...unsigned,quote:{} as never})}));
+ try{
+  const readiness=(await app.inject('/api/v1/readiness')).json();
+  assert.equal(readiness.mainnetEnabled,false);assert.equal(readiness.submitsTransactions,false);assert.deepEqual(readiness.blockers,['NO_POOLS','AGGREGATOR_NOT_DEPLOYED']);
+  const body=(await app.inject({method:'POST',url:'/api/v1/swaps/prepare',payload:{quote:{tokenIn:A,tokenOut:B,amount:'10000'},publicKey:StrKey.encodeEd25519PublicKey(Buffer.alloc(32,9))}})).json();
+  assert.equal(body.requiresWalletSignature,true);assert.equal(body.submitted,false);
+ }finally{await app.close();}
+});
+test('no route accepts signed transactions for submission',async()=>{
+ const app=await buildApp(fakeChain());
+ try{
+  const paths=Object.keys((await app.inject('/api/v1/openapi.json')).json().paths);
+  assert.equal(paths.some(p=>/submit|send|broadcast|sign/i.test(p)),false);
+ }finally{await app.close();}
 });

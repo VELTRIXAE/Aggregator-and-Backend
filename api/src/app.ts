@@ -36,6 +36,7 @@ export async function buildApp(chain: Chain, origins: string[] = [], logging = f
   });
   app.setNotFoundHandler((_request,reply) => reply.code(404).send({error:{code:'NOT_FOUND',message:'Endpoint not found'}}));
   app.get('/api/v1/health',{schema:{summary:'Process liveness; does not imply chain readiness',response:responses}},async()=>({status:'ok',service:'VELTRIXAE Aggregator',network:'testnet'}));
+  app.get('/api/v1/readiness',{schema:{summary:'Observed deployment, liquidity and aggregator gates; mainnet is always disabled',response:responses}},async()=>bounded(()=>chain.readiness()));
   app.get('/api/v1/network/status',{schema:{summary:'Live RPC network and latest ledger',response:responses}},async()=>bounded(()=>chain.status()));
   app.get('/api/v1/tokens',{schema:{summary:'On-chain metadata; no trust or issuer endorsement',response:responses}},async()=>({tokens:await bounded(()=>chain.tokens())}));
   app.get('/api/v1/pools',{schema:{summary:'Fresh verified factory pools and reserves',response:responses}},async()=>bounded(()=>chain.snapshot()));

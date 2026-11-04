@@ -8,6 +8,7 @@ test('client encodes quote requests and polls until chain finalization',async()=
  const server=createServer(async(req,res)=>{
   res.setHeader('content-type','application/json');
   if(req.url?.startsWith('/api/v1/transactions/'))return res.end(JSON.stringify({finalized:++polls===2,status:polls===2?'SUCCESS':'NOT_FOUND'}));
+  if(req.url==='/api/v1/readiness')return res.end(JSON.stringify({mainnetEnabled:false,blockers:['NO_POOLS']}));
   if(req.url==='/api/v1/quotes'){
    const chunks=[];for await(const chunk of req)chunks.push(chunk);
    const body=JSON.parse(Buffer.concat(chunks).toString());
@@ -20,6 +21,7 @@ test('client encodes quote requests and polls until chain finalization',async()=
  const address=server.address() as {port:number};
  const client=new VeltrixaeClient(`http://127.0.0.1:${address.port}`);
  try{
+  assert.deepEqual((await client.readiness()).blockers,['NO_POOLS']);
   assert.equal((await client.quote({tokenIn:'fixture',tokenOut:'fixture2',amount:'9007199254740993'})).amountIn,'9007199254740993');
   assert.equal((await client.monitorTransaction('a'.repeat(64),{maxAttempts:3,intervalMs:100})).status,'SUCCESS');
   assert.equal(polls,2);
