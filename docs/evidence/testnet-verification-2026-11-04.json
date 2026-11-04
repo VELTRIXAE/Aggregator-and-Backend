@@ -1,0 +1,303 @@
+{
+  "checkedAt": "2026-11-04T18:12:09.802Z",
+  "method": "Read-only: getNetwork, getHealth, getLedgerEntries, simulateTransaction, getTransaction. No key was used; nothing was signed or submitted.",
+  "rpc": {
+    "url": "https://soroban-testnet.stellar.org",
+    "passphrase": "Test SDF Network ; September 2015",
+    "protocolVersion": 30,
+    "latestLedger": 5558382,
+    "oldestLedger": 5437423
+  },
+  "veltrixaeAmm": {
+    "sourceCommit": "133b18d00505108c26382cb44045abab48b51882",
+    "factory": {
+      "id": "CCBE2WCHO5PY6WVXTKZLIZA446M43RTOVD4S6XZYHPHJEL7K33LHW6RA",
+      "observedWasmSha256": "469d6366d0be2b431466c6530b9f2418c30d765ab9dcbf33cc51f7265d53afa0",
+      "expectedWasmSha256": "469d6366d0be2b431466c6530b9f2418c30d765ab9dcbf33cc51f7265d53afa0",
+      "matches": true,
+      "instanceLiveUntilLedger": 6029034
+    },
+    "router": {
+      "id": "CDSNTA4DH5CXDJJMY4QQ6IUF2M3VLR2WVPCL3UUQMCVUDQ5ZHVYWUZA4",
+      "observedWasmSha256": "4c1edf7f3a7b9fa659f69c35e6803e95f4a3b4467c1ab1543e87147b7f9b8c17",
+      "expectedWasmSha256": "4c1edf7f3a7b9fa659f69c35e6803e95f4a3b4467c1ab1543e87147b7f9b8c17",
+      "matches": true,
+      "instanceLiveUntilLedger": 6033546
+    },
+    "pairCode": {
+      "expectedWasmSha256": "26c28c1a76d1c4a2eee6db570be26424cfa16d3aa9de6a24ce2d27d346d915ad",
+      "observedWasmSha256": "26c28c1a76d1c4a2eee6db570be26424cfa16d3aa9de6a24ce2d27d346d915ad",
+      "matches": true,
+      "liveUntilLedger": 5631435,
+      "note": "Code is uploaded; no pair instance exists to confirm it runs."
+    },
+    "routerFactoryLink": true,
+    "feeToSetter": "GCOK3K62FKMGHI4AJRRNEN6WJQUERE5ZPOHEKF6BB5M4GH3BDCQQMXFL",
+    "feesEnabled": false,
+    "poolCount": 0,
+    "receipts": [
+      {
+        "operation": "pair_upload",
+        "hash": "7bfc9d2277ffd53a9d401473308b8494d1e0cdb06d093e1cc001ca7d9836e4d9",
+        "status": "SUCCESS",
+        "ledger": 5510476
+      },
+      {
+        "operation": "factory_upload",
+        "hash": "981b5da90bd77e116839f40681f97f2171b2e659cb9500e0d8b1dfa1d5bc2c03",
+        "status": "SUCCESS",
+        "ledger": 5510477
+      },
+      {
+        "operation": "router_upload",
+        "hash": "d889ec70187cabeb42b2bde004b83e7404c21465fc68b4882328f2c437657cb5",
+        "status": "SUCCESS",
+        "ledger": 5510478
+      },
+      {
+        "operation": "factory_deploy",
+        "hash": "a8ff0145b02f4d825c75fbe986065090acbbd40beba24c122fd90a8d6acf4aef",
+        "status": "SUCCESS",
+        "ledger": 5510479
+      },
+      {
+        "operation": "factory_initialize",
+        "hash": "6163766dce774f96180a27802052349838bb8b7cbcac37050c279264191c8511",
+        "status": "SUCCESS",
+        "ledger": 5510634
+      },
+      {
+        "operation": "router_deploy",
+        "hash": "46c46fc26fbf9dc3ec799172ccdbf13645f7e8184e229d01e776b085744c7bba",
+        "status": "SUCCESS",
+        "ledger": 5510635
+      },
+      {
+        "operation": "router_initialize",
+        "hash": "74c6c3fbbd59b56a5882185d2ee64236705a8f633bce5bb42ad4a738d8b90993",
+        "status": "SUCCESS",
+        "ledger": 5515146
+      }
+    ]
+  },
+  "readiness": {
+    "network": "testnet",
+    "mainnetEnabled": false,
+    "custody": "none",
+    "submitsTransactions": false,
+    "checkedAt": 1793815942139,
+    "networkVerified": true,
+    "ledger": 5558462,
+    "deployment": {
+      "status": "verified",
+      "code": null
+    },
+    "liquidity": {
+      "status": "empty",
+      "pools": 0,
+      "fundedPools": 0,
+      "code": null
+    },
+    "aggregator": {
+      "status": "not-deployed"
+    },
+    "quotesAvailable": false,
+    "swapPreparationAvailable": false,
+    "blockers": [
+      "NO_POOLS",
+      "AGGREGATOR_NOT_DEPLOYED"
+    ]
+  },
+  "publicSoroswapReference": {
+    "note": "Soroswap-operated Testnet contracts: a reference for funded-pool behaviour. This is not VELTRIXAE liquidity and is not active configuration.",
+    "factory": "CDP3HMUH6SMS3S7NPGNDJLULCOXXEPSHY4JKUKMBNQMATHDHWXRRJTBY",
+    "router": "CCJUD55AG6W5HAI5LRVNKAE5WDP5XGZBUDS5WNTIVDU7O264UZZE7BRD",
+    "poolCount": 628,
+    "samplePool": {
+      "id": "CDSQONFE5BS732OYYJINI2L7W4567XRBLJWDD7GPVQZLXLPC4CGA55ZO",
+      "token0": "CB3TLW74NBIOT3BUWOZ3TUM6RFDF6A4GVIRUQRQZABG5KPOUL4JJOV2F",
+      "token1": "CCZGLAUBDKJSQK72QOZHVU7CUWKW45OZWYWCLL27AEK74U2OIBK6LXF2",
+      "reserve0": "1232044649910",
+      "reserve1": "2069957428590",
+      "ledger": 5558394
+    },
+    "quoteMathParity": {
+      "trials": 20,
+      "matches": 20,
+      "sameLedger": 17,
+      "sameLedgerMatches": 17,
+      "results": [
+        {
+          "kind": "exactIn",
+          "amount": "10",
+          "local": "15",
+          "router": "15",
+          "match": true,
+          "sameLedger": true
+        },
+        {
+          "kind": "exactIn",
+          "amount": "12345",
+          "local": "20676",
+          "router": "20676",
+          "match": true,
+          "sameLedger": true
+        },
+        {
+          "kind": "exactOut",
+          "amount": "1000000",
+          "local": "596996",
+          "router": "596996",
+          "match": true,
+          "sameLedger": true
+        },
+        {
+          "kind": "exactIn",
+          "amount": "987654321",
+          "local": "1653058141",
+          "router": "1653058141",
+          "match": true,
+          "sameLedger": true
+        },
+        {
+          "kind": "exactIn",
+          "amount": "10",
+          "local": "15",
+          "router": "15",
+          "match": true,
+          "sameLedger": true
+        },
+        {
+          "kind": "exactOut",
+          "amount": "12345",
+          "local": "7371",
+          "router": "7371",
+          "match": true,
+          "sameLedger": true
+        },
+        {
+          "kind": "exactIn",
+          "amount": "1000000",
+          "local": "1675057",
+          "router": "1675057",
+          "match": true,
+          "sameLedger": true
+        },
+        {
+          "kind": "exactIn",
+          "amount": "987654321",
+          "local": "1653058141",
+          "router": "1653058141",
+          "match": true,
+          "sameLedger": true
+        },
+        {
+          "kind": "exactOut",
+          "amount": "10",
+          "local": "7",
+          "router": "7",
+          "match": true,
+          "sameLedger": true
+        },
+        {
+          "kind": "exactIn",
+          "amount": "12345",
+          "local": "20676",
+          "router": "20676",
+          "match": true,
+          "sameLedger": false
+        },
+        {
+          "kind": "exactIn",
+          "amount": "1000000",
+          "local": "1675057",
+          "router": "1675057",
+          "match": true,
+          "sameLedger": true
+        },
+        {
+          "kind": "exactOut",
+          "amount": "987654321",
+          "local": "589905047",
+          "router": "589905047",
+          "match": true,
+          "sameLedger": true
+        },
+        {
+          "kind": "exactIn",
+          "amount": "10",
+          "local": "15",
+          "router": "15",
+          "match": true,
+          "sameLedger": false
+        },
+        {
+          "kind": "exactIn",
+          "amount": "12345",
+          "local": "20676",
+          "router": "20676",
+          "match": true,
+          "sameLedger": true
+        },
+        {
+          "kind": "exactOut",
+          "amount": "1000000",
+          "local": "596996",
+          "router": "596996",
+          "match": true,
+          "sameLedger": true
+        },
+        {
+          "kind": "exactIn",
+          "amount": "987654321",
+          "local": "1653058141",
+          "router": "1653058141",
+          "match": true,
+          "sameLedger": true
+        },
+        {
+          "kind": "exactIn",
+          "amount": "10",
+          "local": "15",
+          "router": "15",
+          "match": true,
+          "sameLedger": false
+        },
+        {
+          "kind": "exactOut",
+          "amount": "12345",
+          "local": "7371",
+          "router": "7371",
+          "match": true,
+          "sameLedger": true
+        },
+        {
+          "kind": "exactIn",
+          "amount": "1000000",
+          "local": "1675057",
+          "router": "1675057",
+          "match": true,
+          "sameLedger": true
+        },
+        {
+          "kind": "exactIn",
+          "amount": "987654321",
+          "local": "1653058141",
+          "router": "1653058141",
+          "match": true,
+          "sameLedger": true
+        }
+      ]
+    },
+    "endToEndQuoteAttempts": {
+      "trials": 20,
+      "outcomes": {
+        "OK": 17,
+        "STALE_STATE": 3
+      },
+      "medianMs": 11752,
+      "maxMs": 20881,
+      "note": "Measured from this client against the public RPC; expect latency to vary."
+    }
+  }
+}

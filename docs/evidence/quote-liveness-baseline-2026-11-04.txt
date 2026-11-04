@@ -1,0 +1,15 @@
+# Quote attempts through the real StellarChain and public Testnet RPC, one funded public Soroswap pool, read-only.
+# Baseline before this change: commit 97d4fa1, observed 2026-11-04. Not VELTRIXAE liquidity.
+0 exactIn INCONSISTENT_STATE 24644ms Pool reads span multiple ledgers; retry
+1 exactIn INCONSISTENT_STATE 25060ms Pool reads span multiple ledgers; retry
+2 exactOut INCONSISTENT_STATE 16672ms Pool reads span multiple ledgers; retry
+3 exactIn INCONSISTENT_STATE 19144ms Pool reads span multiple ledgers; retry
+4 exactIn INCONSISTENT_STATE 22495ms Pool reads span multiple ledgers; retry
+5 exactOut INCONSISTENT_STATE 21656ms Pool reads span multiple ledgers; retry
+6 exactIn DISCOVERY_TIMEOUT 20487ms Pool collection exceeded its time budget; use a smaller factory or an indexer
+7 exactIn DISCOVERY_TIMEOUT 16122ms Pool collection exceeded its time budget; use a smaller factory or an indexer
+8 exactOut INCONSISTENT_STATE 31118ms Pool reads span multiple ledgers; retry
+9 exactIn DISCOVERY_TIMEOUT 17412ms Pool collection exceeded its time budget; use a smaller factory or an indexer
+10 exactIn DISCOVERY_TIMEOUT 20728ms Pool collection exceeded its time budget; use a smaller factory or an indexer
+11 exactOut INCONSISTENT_STATE 27750ms Pool reads span multiple ledgers; retry
+{"trials":12,"tally":{"INCONSISTENT_STATE":8,"DISCOVERY_TIMEOUT":4},"medianMs":21656,"maxMs":31118}

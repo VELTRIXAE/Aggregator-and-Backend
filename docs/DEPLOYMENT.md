@@ -1,6 +1,6 @@
 # Development and deployment
 
-Codespaces installs Rust, Node 22, Docker and Stellar CLI through `.devcontainer/devcontainer.json` and `scripts/setup.sh`. The script initializes the top-level pinned upstream and available nested Soroswap/Phoenix/Comet gitlinks. Aqua's unavailable remote is not substituted; tracked WASM remains available for tests. Upstream yarn tools stay separate from the root npm workspaces.
+Codespaces installs Rust, Node 22, Docker and Stellar CLI (a checksum-pinned release binary on Linux x86-64, which includes the optimizer) through `.devcontainer/devcontainer.json` and `scripts/setup.sh`. The script initializes the top-level pinned upstream and available nested Soroswap/Phoenix/Comet gitlinks. Aqua's unavailable remote is not substituted; tracked WASM remains available for tests. Upstream yarn tools stay separate from the root npm workspaces.
 
 | Variable | Default / purpose |
 | --- | --- |

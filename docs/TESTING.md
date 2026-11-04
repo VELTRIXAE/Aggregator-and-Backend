@@ -102,3 +102,25 @@ The later authorized resume completed the AMM deployment. The active manifest no
 | Routing operation benchmark | 1000-pool synthetic graph: 2000 flat pool checks versus 4 indexed edge checks plus 1000 index-build visits; operation counts only |
 
 Historical sections above record what was true at each earlier checkpoint. This section and NEXT_SESSION.md describe the current state.
+
+## Funding-readiness verification — 2026-11-04
+
+Observed results on this branch, before CI. CI results are on the pull request.
+
+| Check | Result |
+| --- | --- |
+| npm run lint / npm run build | Both workspaces passed |
+| npm test | 67 API tests and 1 frontend client test passed |
+| npm run test:contracts | 149 upstream Rust tests, 4 SDK 29 WASM authorization tests and 1 compiled-spec ABI test passed, with a real optimized build |
+| bash scripts/setup.sh | Passed with no CLI installed beforehand; installed the checksum-pinned Stellar CLI 22.8.1 |
+| RUN_TESTNET_TESTS=1 npm run test:rpc | 3 passed. 1 explicitly skipped: funded-route parity needs a VELTRIXAE pool, which does not exist |
+| npm run verify:deployment | Exit 0: AMM verified, liquidity empty, blockers `NO_POOLS` and `AGGREGATOR_NOT_DEPLOYED` |
+| npm run evidence:testnet -- --trials 20 | See [the report](evidence/testnet-verification-2026-11-04.json) and [funding evidence](FUNDING_EVIDENCE.md) |
+| npm audit --audit-level=moderate | Zero vulnerabilities |
+| cargo audit (manual, not in CI) | Not clean: RUSTSEC-2026-0387 in `contract-tests` and upstream, RUSTSEC-2026-0009 in upstream, plus warnings. See issue draft 10 |
+| Docker build and run | Non-root image. Inside the container: health 200, readiness accurate, empty pools 200, quote 422 `NO_LIQUIDITY`, prepare 503 `NOT_CONFIGURED`, a secret field 400. Port publishing from this development container was not reachable, so requests ran inside the container |
+| Routing benchmark, OpenAPI export, shell syntax | Passed. OpenAPI updated for the new route |
+
+Not tested, because it would need a state-changing transaction or does not exist yet: quotes on a VELTRIXAE pool, aggregator behaviour on Testnet, swap simulation through an aggregator, wallet signing and execution.
+
+Rust formatting and Clippy are not part of this project's checks, and the pinned upstream sources are not modified here.

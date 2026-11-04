@@ -11,7 +11,7 @@ npm test
 npm start
 ```
 
-The server binds 127.0.0.1:3000 by default. Set HOST=0.0.0.0 in a container. GET /api/v1/health reports process liveness; GET /api/v1/network/status checks Testnet RPC freshness. Set CORS_ORIGINS to the exact frontend origin, for example http://localhost:5173. Wildcards and URL paths are rejected.
+The server binds 127.0.0.1:3000 by default. Set HOST=0.0.0.0 in a container. GET /api/v1/health reports process liveness; GET /api/v1/network/status checks Testnet RPC freshness; GET /api/v1/readiness reports observed deployment, liquidity and aggregator gates. Set CORS_ORIGINS to the exact frontend origin, for example http://localhost:5173. Wildcards and URL paths are rejected.
 
 ## Configuration
 
@@ -36,7 +36,10 @@ The checked-in manifest now references the verified VELTRIXAE Factory and Router
 ```sh
 npm run verify:deployment
 RUN_TESTNET_TESTS=1 npm run test:rpc
+npm run evidence:testnet -- --trials 10
 ```
+
+All three are read-only. Public RPC latency varies widely, so a single timeout is not proof of a deployment problem: `verify:deployment` exits non-zero when the deployment fails or liquidity could not be observed, and prints the reason.
 
 The Factory was empty at verification. Empty pools/tokens are expected, quotes return NO_LIQUIDITY, and swaps/prepare returns NOT_CONFIGURED until a separate verified aggregator exists. Pool creation/liquidity funding and aggregator deployment require separately scoped operator authorization. These commands never perform them.
 
