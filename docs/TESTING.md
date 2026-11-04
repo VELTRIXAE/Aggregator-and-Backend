@@ -144,3 +144,20 @@ Results on this branch, before CI. CI results are on the pull request.
 | cargo audit (manual, not in CI) | Not clean: see [Rust advisories](RUST_ADVISORIES.md). Nothing suppressed |
 
 The rehearsal runs in the local Soroban test host with mocked authorization where noted in its source. It is not a live pool or swap. No plan step was executed.
+
+## Hardening verification — 2026-11-04
+
+Results on this branch, before CI. CI results are on the pull request.
+
+| Check | Result |
+| --- | --- |
+| npm run lint / npm run build | Both workspaces passed |
+| npm test | 76 API tests and 5 client tests passed |
+| Fuzz sensitivity | Temporarily breaking fee rounding, required-input rounding or the underfunding guard each makes the fuzz suite fail. The suite first missed the guard, so a targeted case was added |
+| `verifyPreparedSwap` | Accepts real encoder and assembly output. 26 altered transactions and fields are each rejected. Not run against a deployed aggregator, because none exists |
+| scripts/audit-rust.sh | Real scan passes with both known advisories printed. Fails on a new advisory, a passed review date, a stale entry and a failed scan, each exercised |
+| npm audit --audit-level=moderate | Zero vulnerabilities |
+| Docker build | Passed |
+| npm run test:contracts | Not rerun locally, since no contract or contract tooling changed. CI runs it |
+
+Run with another seed using `FUZZ_SEED=<number> npm test --workspace api`.

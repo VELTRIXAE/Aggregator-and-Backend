@@ -1,0 +1,17 @@
+name: Feature request
+description: Propose a change. Testnet only; mainnet is out of scope.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What do you propose?
+      description: Note any security or licensing effects. See docs/LICENSE_REVIEW.md before reusing upstream code.
+    validations:
+      required: true

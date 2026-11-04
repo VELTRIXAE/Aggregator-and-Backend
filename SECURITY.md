@@ -13,7 +13,7 @@ Do not request, store or send private keys or recovery phrases to this API. Wall
 | Observable gates | `GET /api/v1/readiness` reports what was checked and each blocker. A failed read is reported as unknown, never as empty or verified. | `readiness` test in `api/test/chain.test.ts` |
 | Deployment needs approval | `scripts/deploy-testnet.sh` needs `APPROVE_TESTNET_DEPLOY=yes`, runs verification first and targets Testnet only. CI never runs it. | `api/test/safety.test.ts` |
 
-Quote and swap responses are not guarantees. The client should still check prepared XDR against the displayed quote before prompting a wallet: see [issue draft 04](docs/issues/04-client-xdr-verification.md).
+Quote and swap responses are not guarantees. Clients should check prepared XDR with `verifyPreparedSwap` before prompting a wallet: see [frontend integration](docs/FRONTEND_INTEGRATION.md). Known open risks, including permissionless pools, are in the [threat model](docs/THREAT_MODEL.md).
 
 ## Reporting
 
@@ -28,7 +28,7 @@ Include the affected revision, reproducible steps and impact in the private repo
 
 Controls include checksummed IDs, bounded integer amounts, strict request bodies, 16 KiB bodies, exact CORS origins, per-process rate limits, four concurrent chain jobs, response deadlines, HTTPS RPC, Testnet passphrase checks, WASM hash verification, factory identity checks and router quote parity. Quotes expire after 15 seconds. Paused/mismatched aggregator configurations fail verification. Pool identity reads (immutable under the pinned pair code) are cached with discovery for up to 60 seconds; code hashes and reserves are read again for every snapshot, and parity requires the router and fresh reserves on one ledger.
 
-RPC is an external trust boundary. Hash matching identifies configured code; it does not audit that code or prove an administrator cannot upgrade it. The deployed AMM predates security fixes on VELTRIXAE/Contract `main`, including atomic initialization, so treat it as a Testnet checkpoint only. Fresh simulations can fail, change or become obsolete. Rate limiting is local to one process; production multi-instance operation needs gateway limits. Health is process liveness, not liquidity readiness.
+RPC is an external trust boundary. Hash matching identifies configured code; it does not audit that code or prove an administrator cannot upgrade it. The deployed AMM predates security fixes on VELTRIXAE/Contract `main`, including atomic initialization, so treat it as a Testnet checkpoint only. Fresh simulations can fail, change or become obsolete. Rate limiting is local to one process; production multi-instance operation needs gateway limits. Behind a proxy, set `TRUSTED_PROXIES` to its exact addresses, otherwise all clients share one limit. Forwarded headers are ignored unless the sender is listed. Health is process liveness, not liquidity readiness.
 
 Upstream authorization tests include mocked authorization in many functional cases; passing them alone is not proof of all malicious-call behavior. Review authorization-specific cases and add adversarial tests when changing contracts. Dependencies are checked by CI and Dependabot; review updates manually. Root license and upstream license declarations differ; preserve all notices and see docs/LICENSE_REVIEW.md.
 

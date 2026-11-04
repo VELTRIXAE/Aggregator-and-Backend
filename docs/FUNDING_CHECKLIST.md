@@ -15,8 +15,11 @@ Each can be rechecked. See [SCF technical evidence](SCF_TECHNICAL_EVIDENCE.md) f
 - [x] Quote math matched a live router in 20 of 20 comparisons, on public Soroswap pools
 - [x] Aggregator works with the exact deployed WASM in a local test host
 - [x] No custody and Testnet only, enforced by build-failing tests
-- [x] 70 unit tests and 161 contract tests pass, and CI passes on `main`
+- [x] 81 unit tests and 161 contract tests pass, and CI passes on `main`
 - [x] Evidence files are checksum-pinned
+- [x] Clients can check prepared transactions before a wallet prompt (tested with mocks and the real encoder, not a deployed aggregator)
+- [x] CI scans Rust dependencies and fails on any new advisory
+- [x] Threat model and monitoring plan are written (not independently reviewed, and monitoring isn't automated)
 - [x] Roadmap, security, license and risk disclosures are published
 - [x] Soroswap attribution is preserved
 
@@ -29,7 +32,7 @@ Each can be rechecked. See [SCF technical evidence](SCF_TECHNICAL_EVIDENCE.md) f
 - [ ] Decide how the deployed source commit is made available
 - [ ] Add a repository description
 - [ ] Publish the [issue drafts](issues/README.md) as real issues, so outsiders can contribute
-- [ ] Add a code of conduct and issue and PR templates
+- [ ] Publish a private contact for conduct and security reports, and assign a monitoring owner
 
 ### Needs legal or rights-holder input
 
@@ -48,9 +51,10 @@ Not approved or executed. See the [Testnet plan](TESTNET_LIVE_PLAN.md).
 ### Engineering
 
 - [ ] Settle [swap preparation's ledger check](issues/01-prepare-swap-ledger-check.md) and [signing window](issues/02-execution-deadline.md)
-- [ ] Add [Rust advisory scanning to CI](issues/10-rust-advisories-ci.md). See [two outstanding advisories](RUST_ADVISORIES.md)
+- [ ] Close the [route allowlist](issues/11-route-allowlist.md) and [pool spam](issues/12-pool-spam.md) gaps from the [threat model](THREAT_MODEL.md)
+- [ ] Resolve the [two outstanding Rust advisories](RUST_ADVISORIES.md), which depends on upstream
+- [ ] Automate the [monitoring plan](MONITORING_PLAN.md)
 - [ ] Measure quote reliability beyond one pool
-- [ ] Write a threat model and monitoring plan
 - [ ] Arrange an independent security review
 
 ## GitHub Sponsors
@@ -81,7 +85,7 @@ Use the open-source work, tests, verified deployment and disclosures. Describe t
 - [ ] Supply a complete architecture and Stellar integration: **available**
 - [ ] Include a plan to open-source the contracts: **partial**, pending licensing and the source decision
 - [ ] Keep the budget to development costs, excluding audits and marketing
-- [ ] Prepare the threat model and monitoring plan for tranche 2
+- [ ] Map the [threat model](THREAT_MODEL.md) and [monitoring plan](MONITORING_PLAN.md) to SCF's current templates for tranche 2: **drafts exist**
 - [ ] Copy evidence into the submission, since external materials are not considered
 
 The first real pool and verified quotes on the VELTRIXAE router would be the strongest addition.

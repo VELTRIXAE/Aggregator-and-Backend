@@ -1,5 +1,16 @@
 # Changelog
 
+## Hardening — 2026-11-04
+
+- Add `verifyPreparedSwap`, so clients can check unsigned XDR against the request before a wallet prompt.
+- Add `TRUSTED_PROXIES`, so rate limits work per client behind a listed proxy. Nothing is trusted by default.
+- Add seeded fuzz tests over route arithmetic, confirmed to catch broken fees, rounding and the underfunding guard.
+- Add a Rust advisory CI job that fails on anything new. Two known advisories stay listed and printed.
+- Add a threat model and monitoring plan, which record two open risks from permissionless pool creation.
+- Add a code of conduct and issue and PR templates.
+
+No state-changing blockchain operation was performed.
+
 ## Testnet plan and reconciliation — 2026-11-04
 
 - Add a gated, unexecuted Testnet plan for the first pool and the aggregator, with a read-only `plan:simulate` command.
