@@ -25,6 +25,33 @@ These need a maintainer or legal decision. No code change in this repository res
 4. **A future aggregator deployment.** The upstream aggregator is declared GPL-3.0, and its adapters build against Phoenix (GPL-3.0), Comet (AGPL-3.0) and Aqua (unknown) interfaces. Resolve this before deploying or distributing a VELTRIXAE aggregator build. AGPL-3.0 network terms in particular need review.
 5. **The MIT test harness.** `contract-tests/` is declared MIT and loads the GPL-3.0-declared aggregator WASM at test time. The WASM is built locally, not committed. Confirm this separation is sufficient.
 
+## Evidence reported by VELTRIXAE/Contract
+
+Its `docs/LICENSING_REVIEW.md` on `main` records that the upstream library's README and manifest both state GPL-3.0 and that its source files have no per-file headers. It maps the conflict to `contracts/library`, which is linked into the Router WASM, while Factory and Pair have no dependency on it. Open Contract PR #11, which is not merged and which this review did not re-verify, reports that all 16 published crate versions and 43 upstream refs declare GPL-3.0, so no permissive replacement version exists.
+
+General background, not advice on this case: Apache-2.0 and MIT code can generally be combined into a GPL-3.0 work, but GPL-3.0 code cannot be relabelled as MIT or Apache-2.0 without permission from its rights holders. That is why the direction of this conflict matters.
+
+## Decisions and who makes them
+
+Engineers can keep the record accurate. They cannot decide the first group.
+
+| # | Decision | Owner | Blocks | Until decided |
+| --- | --- | --- | --- | --- |
+| L1 | Which license governs Soroswap's Aggregator and Core library code (questions 1 and 3)? | **Soroswap rights holders**, in writing | Any unqualified license claim | Preserve both notices |
+| L2 | If GPL-3.0 applies, what must VELTRIXAE do for its Router, the bundled artifacts and any release? | **Legal counsel** | Commercial release, relicensing | Do not change declarations |
+| L3 | Does the Uniswap V2 lineage extend the question to the Factory, Pair and Router? | **Legal counsel** | Same as L2 | Keep the lineage notice |
+| L4 | Do GPL-3.0 and AGPL-3.0 terms apply to deploying or running an aggregator with those adapters (question 4)? Could a Soroswap-only build narrow it? | **Legal counsel** | Phase D of the [Testnet plan](TESTNET_LIVE_PLAN.md) | Do not deploy |
+| L5 | Do matching quote formulas in MIT-labelled `routing.ts` create an obligation (question 2)? | **Legal counsel** | Stating the API is purely MIT | Keep the NOTICE entry |
+| L6 | Is it acceptable to keep the WASM and bundle under `docs/evidence/`, and is the MIT test harness sufficiently separate (questions 3 and 5)? | **Legal counsel** | Unqualified redistribution claims | Keep them labelled in NOTICE |
+| M1 | Ask Soroswap for written clarification | **Maintainer** | L1 | Not yet sent |
+| M2 | Retain counsel, and decide how much certainty the funding application needs | **Maintainer** | L2 to L6 | Not started |
+| M3 | Choose what the application says about licensing | **Maintainer**, after M1 and M2 | Application | Use the statement below |
+| M4 | Confirm Aqua's license, since its source could not be fetched | **Maintainer or a contributor** | Any build including Aqua | Treat as unknown |
+
+Suggested wording while these are open:
+
+> VELTRIXAE builds on Soroswap, which is derived in design from Uniswap V2. Upstream license declarations conflict (Apache-2.0 and GPL-3.0), and related protocols use GPL-3.0 and AGPL-3.0. We have documented these conflicts and are seeking clarification. We make no claim that they are resolved.
+
 ## What the API image ships
 
 `api/Dockerfile` copies only `api/`, `packages/frontend-client/`, `config/` and npm dependencies. It does not include `upstream/` or `docs/evidence/`.

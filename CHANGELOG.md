@@ -1,5 +1,16 @@
 # Changelog
 
+## Testnet plan and reconciliation — 2026-11-04
+
+- Add a gated, unexecuted Testnet plan for the first pool and the aggregator, with a read-only `plan:simulate` command.
+- Add 7 local rehearsal tests running the upstream aggregator against the exact deployed WASM. No network is involved.
+- Reconcile deployment records with VELTRIXAE/Contract, and reproduce the deployed WASM byte-for-byte from `133b18d`.
+- Pin evidence files with checksums, enforced by a test.
+- Document two outstanding RustSec advisories and each licensing decision with its owner. Nothing is suppressed or resolved.
+- State plainly that VELTRIXAE has zero pools and no executable swaps.
+
+No state-changing blockchain operation was performed.
+
 ## Funding readiness — 2026-11-04
 
 - Fix CI: install a Stellar CLI that can optimize contracts, pinned by checksum.
