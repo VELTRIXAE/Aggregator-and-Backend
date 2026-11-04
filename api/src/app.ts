@@ -9,8 +9,8 @@ const jsonObject = {type:'object',additionalProperties:true};
 const responses = {200:jsonObject,400:jsonObject,404:jsonObject,422:jsonObject,429:jsonObject,503:jsonObject,504:jsonObject};
 const quoteJson = z.toJSONSchema(quoteRequest, {io:'input',target:'draft-7'});
 // Zod refinements (checksums and distinct tokens) are applied again in handlers.
-export async function buildApp(chain: Chain, origins: string[] = [], logging = false) {
-  const app = Fastify({logger:logging ? {serializers:{req: (request: {method: string}) => ({method:request.method})}} : false,ajv:{customOptions:{removeAdditional:false,coerceTypes:false}},bodyLimit:16384,requestTimeout:25000,connectionTimeout:30000});
+export async function buildApp(chain: Chain, origins: string[] = [], logging = false, trustedProxies: string[] = []) {
+  const app = Fastify({logger:logging ? {serializers:{req: (request: {method: string}) => ({method:request.method})}} : false,ajv:{customOptions:{removeAdditional:false,coerceTypes:false}},bodyLimit:16384,requestTimeout:25000,connectionTimeout:30000,...(trustedProxies.length ? {trustProxy:trustedProxies} : {})});
   await app.register(cors,{origin:origins,credentials:false,methods:['GET','POST']});
   await app.register(rateLimit,{max:60,timeWindow:'1 minute'});
   await app.register(swagger,{openapi:{info:{title:'VELTRIXAE Aggregator',version:'0.1.0',description:'Testnet discovery and indicative quotations. Amounts are integer strings in token base units.'}}});

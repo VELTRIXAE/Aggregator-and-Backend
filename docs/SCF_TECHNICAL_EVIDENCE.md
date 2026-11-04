@@ -27,8 +27,9 @@ This is an **older build than VELTRIXAE/Contract `main`**, and `main` has not be
 | Live quote path | 17 of 20 succeeded, 3 failed closed, up from 0 of 12. **One public Soroswap pool, one client** | [report](https://github.com/VELTRIXAE/Aggregator-and-Backend/blob/90b9d8728dae179baae4a7d15da2c6ece1e9803b/docs/evidence/testnet-verification-2026-11-04.json), [baseline](https://github.com/VELTRIXAE/Aggregator-and-Backend/blob/90b9d8728dae179baae4a7d15da2c6ece1e9803b/docs/evidence/quote-liveness-baseline-2026-11-04.txt) |
 | Aggregator with the deployed WASM | 7 passing tests: pool creation, both swap types, limits, authorization. **Local test host, not live** | [tests](https://github.com/VELTRIXAE/Aggregator-and-Backend/blob/90b9d8728dae179baae4a7d15da2c6ece1e9803b/contract-tests/src/rehearsal.rs) |
 | No custody, Testnet only | Tests fail the build on signing, submission, mainnet access or a tracked secret | [tests](https://github.com/VELTRIXAE/Aggregator-and-Backend/blob/90b9d8728dae179baae4a7d15da2c6ece1e9803b/api/test/safety.test.ts), [security](../SECURITY.md) |
+| Wallet-side check | Prepared XDR is compared with the request before a wallet prompt. **Tested with mocks and the real encoder, not a deployed aggregator** | [verifier](../packages/frontend-client/src/verify.ts), [tests](../packages/frontend-client/test/verify.test.ts) |
 | Backend gates | Quotes and swap preparation refuse until each condition holds | [chain](https://github.com/VELTRIXAE/Aggregator-and-Backend/blob/90b9d8728dae179baae4a7d15da2c6ece1e9803b/api/src/chain.ts), [routing](https://github.com/VELTRIXAE/Aggregator-and-Backend/blob/90b9d8728dae179baae4a7d15da2c6ece1e9803b/api/src/routing.ts) |
-| Test suite and CI | 70 unit tests and 161 contract tests pass | [workflow](https://github.com/VELTRIXAE/Aggregator-and-Backend/blob/90b9d8728dae179baae4a7d15da2c6ece1e9803b/.github/workflows/ci.yml), [testing record](https://github.com/VELTRIXAE/Aggregator-and-Backend/blob/90b9d8728dae179baae4a7d15da2c6ece1e9803b/docs/TESTING.md) |
+| Test suite and CI | 81 unit tests and 161 contract tests pass | [workflow](https://github.com/VELTRIXAE/Aggregator-and-Backend/blob/90b9d8728dae179baae4a7d15da2c6ece1e9803b/.github/workflows/ci.yml), [testing record](https://github.com/VELTRIXAE/Aggregator-and-Backend/blob/90b9d8728dae179baae4a7d15da2c6ece1e9803b/docs/TESTING.md) |
 
 ## Architecture and plan
 
@@ -53,7 +54,7 @@ Address these directly in the application:
 | Unique or meaningfully differentiated | **Not shown.** Soroswap already provides an aggregator |
 | Final tranche is a Mainnet launch | **Not planned yet.** Mainnet is disabled in code, and a decision is required |
 | Plan to open-source the contracts | **Partial.** Repositories are public, but licensing is unresolved and the deployed source commit isn't on a Contract branch |
-| Threat model and monitoring plan, due at tranche 2 | **Not written** |
+| Threat model and monitoring plan, due at tranche 2 | **Drafted.** See the [threat model](THREAT_MODEL.md) and [monitoring plan](MONITORING_PLAN.md). Not independently reviewed, and monitoring isn't automated |
 
 ## Reproduce
 

@@ -10,6 +10,8 @@ Use focused commits describing behavior and validation. Never commit .env, walle
 
 For backend changes run npm run benchmark:routing and keep its operation-count scope explicit. Configuration/discovery changes must test cap exhaustion, deadline failures, duplicate/forged pools, queue limits, and fresh-reserve behavior. CI runs offline tests on every push/PR and exposes a manual read-only Testnet workflow; missing live token/liquidity prerequisites must be reported as skips. Offline compiled-spec ABI tests run in the contracts job after actual WASM builds.
 
+This project follows the [code of conduct](CODE_OF_CONDUCT.md).
+
 ## Where to start
 
 [Contributor issue drafts](docs/issues/README.md) lists scoped work, including good first issues. The [roadmap](docs/ROADMAP.md) shows how it fits together.

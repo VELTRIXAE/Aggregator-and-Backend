@@ -4,6 +4,28 @@ Build the root workspaces and consume `@veltrixae/frontend-client` through a wor
 
 The active Testnet AMM is verified but currently has no pools, so `tokens()` returns an empty list and quotations return `NO_LIQUIDITY`. The separate aggregator is not configured, so `prepareSwap()` returns `NOT_CONFIGURED`. Treat both as explicit unavailable states in the UI. Enable trade controls only after the backend returns supported tokens and a fresh quote; do not add fallback token, reserve or price data.
 
+**Before any wallet prompt, check prepared XDR with `verifyPreparedSwap`.** The API is outside the wallet's trust boundary, so take expected values from your own request and configuration, never from the API response.
+
+```ts
+import { verifyPreparedSwap, PreparedSwapRejected } from '@veltrixae/frontend-client/verify';
+const prepared = await api.prepareSwap(request, publicKey);
+try {
+  verifyPreparedSwap(prepared.transactionXdr, {
+    publicKey, aggregator: CONFIGURED_AGGREGATOR,
+    tokenIn: request.tokenIn, tokenOut: request.tokenOut,
+    kind: 'exactIn', amount: request.amount,
+    limit: MINIMUM_THE_PERSON_ACCEPTED,
+    latestDeadline: Math.floor(Date.now() / 1000) + 60,
+    maxFeeStroops: '100000000',
+  });
+} catch (error) {
+  if (error instanceof PreparedSwapRejected) { /* do not prompt the wallet; report error.code */ }
+  throw error;
+}
+```
+
+It needs `@stellar/stellar-sdk` as a peer dependency, while the base client stays dependency-free. An envelope doesn't name its network, so also give the wallet the Testnet passphrase. It doesn't inspect authorization sub-invocations, and it doesn't replace the person's review in the wallet. No aggregator exists yet, so it hasn't run against a real prepared swap.
+
 ```ts
 import { VeltrixaeClient, ApiError } from '@veltrixae/frontend-client';
 const api = new VeltrixaeClient('https://your-api.example', 25000);
