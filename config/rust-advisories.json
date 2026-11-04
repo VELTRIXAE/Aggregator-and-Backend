@@ -1,0 +1,19 @@
+{
+  "note": "Advisories reviewed in docs/RUST_ADVISORIES.md. This is not an ignore list: each is reported on every scan, and unlisted advisories fail the build.",
+  "advisories": [
+    {
+      "id": "RUSTSEC-2026-0387",
+      "package": "crypto-bigint",
+      "lockfiles": ["contract-tests/Cargo.lock", "upstream/soroswap/contracts/Cargo.lock"],
+      "reason": "Host and test dependency, not in the contract WASM dependency graph. The patched range cannot satisfy elliptic-curve 0.13.",
+      "review_by": "2027-02-04"
+    },
+    {
+      "id": "RUSTSEC-2026-0009",
+      "package": "time",
+      "lockfiles": ["upstream/soroswap/contracts/Cargo.lock"],
+      "reason": "Present in the pinned upstream lockfile, but not in the resolved build as currently configured.",
+      "review_by": "2027-02-04"
+    }
+  ]
+}

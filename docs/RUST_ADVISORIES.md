@@ -1,6 +1,6 @@
 # Rust advisories
 
-Two RustSec advisories are outstanding. **Neither is fixed, ignored or suppressed.** No `audit.toml`, `.cargo/audit` exception or ignore flag exists in this repository, and `npm audit` remains a CI gate. Checked 2026-11-04 with cargo-audit 0.22.2. Rerun rather than relying on this page.
+Two RustSec advisories are outstanding. **Neither is fixed, ignored or suppressed.** No `audit.toml`, `.cargo/audit` exception or ignore flag exists in this repository. `npm audit` remains a CI gate, and Rust advisories are now scanned in CI (see below). Checked 2026-11-04 with cargo-audit 0.22.2. Rerun rather than relying on this page.
 
 ```sh
 cargo install --locked cargo-audit
@@ -51,7 +51,7 @@ Their reach has not been analysed individually.
 
 ## Current limits and next steps
 
-- **CI does not scan Rust dependencies yet.** Adding that without either a permanently red job or a hidden exception needs a decision: see [issue draft 10](issues/10-rust-advisories-ci.md).
+- **CI now scans both lockfiles** on every push and pull request, and weekly (`scripts/audit-rust.sh`). A new advisory, a passed review date, a stale entry or a failed scan fails the job. The two above are listed in `config/rust-advisories.json` with reasons and a review date, and are printed on every run. Nothing is passed to cargo-audit as an ignore. **Maintainers should review this exception list.**
 - **VELTRIXAE/Contract's** advisory gate is expected to stay red on RUSTSEC-2026-0387, per its review.
 - **Reachability is not exploitability analysis.** No one has performed an independent review of these findings.
 - **Review again** when `soroban-sdk`, `soroban-env-host` or the upstream pin changes, and before any release claim.
