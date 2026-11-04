@@ -58,6 +58,7 @@ The public Soroswap Testnet factory reports 628 pools, of which a sample was rea
 
 ## Project history
 
+- [Funding checklist](FUNDING_CHECKLIST.md) and [SCF technical evidence](SCF_TECHNICAL_EVIDENCE.md)
 - [Testnet plan](TESTNET_LIVE_PLAN.md), [roadmap](ROADMAP.md) and [contributor issue drafts](issues/README.md)
 - [Deployment reconciliation](DEPLOYMENT_RECONCILIATION.md) and [Rust advisories](RUST_ADVISORIES.md)
 - [Backend audit](BACKEND_AUDIT.md), [testing record](TESTING.md) and [original contributions](ORIGINAL_CONTRIBUTIONS.md)
