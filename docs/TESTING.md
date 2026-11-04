@@ -160,4 +160,4 @@ Results on this branch, before CI. CI results are on the pull request.
 | Docker build | Passed |
 | npm run test:contracts | Not rerun locally, since no contract or contract tooling changed. CI runs it |
 
-Run with another seed using `FUZZ_SEED=<number> npm test --workspace api`.
+Run with another seed using `FUZZ_SEED=<number> npm test --workspace api`. Underfunded inputs are rare, so a custom seed may not reach one. Only the default seed is required to, which keeps the guard's sensitivity check deterministic in CI.
