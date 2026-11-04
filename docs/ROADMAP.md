@@ -11,7 +11,7 @@ Live quote path works against funded pools on the public RPC, with fail-closed g
 ## 2. Decisions that need a person
 
 - Answer the [license questions](LICENSE_REVIEW.md). Blocks redistribution and any aggregator deployment.
-- Publish deployed source commit `133b18d` in VELTRIXAE/Contract and correct its records, as listed in the [reconciliation](DEPLOYMENT_RECONCILIATION.md).
+- Correct VELTRIXAE/Contract's records, and decide how deployed source commit `133b18d` is made available, as listed in the [reconciliation](DEPLOYMENT_RECONCILIATION.md).
 - Decide whether to redeploy from current Contract `main`. Its contracts differ materially from the deployed ones, including atomic initialization and the exact-output rounding fix.
 
 **Exit evidence:** recorded decisions, with links.

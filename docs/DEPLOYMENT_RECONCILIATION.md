@@ -24,7 +24,7 @@ Compares this repository's deployment records with VELTRIXAE/Contract at `main` 
 | Contract document | It says | Evidence here | Action for Contract |
 | --- | --- | --- | --- |
 | `docs/TESTNET_VERIFICATION.md` | "Project deployment evidence: NOT VERIFIED"; the maintainer confirmed no IDs or hashes are available | IDs, hashes and receipts exist and check out on-chain | Link the evidence, and replace the status with what is verified |
-| `deployments/README.md` | No record is present, so there is no `testnet.json` | A complete manifest is in `docs/evidence/contracts-testnet-deployment-2026-11-02.json` | Add it unchanged |
+| `deployments/README.md` | No record is present, so there is no `testnet.json` | A complete manifest is in `docs/evidence/contracts-testnet-deployment-2026-11-02.json` | Explain the older deployment and link evidence copies |
 | `docs/DEPLOYMENT.md` | Scripts not yet exercised against the network, and no verified IDs | The deployment ran from an earlier version of those scripts. Today's constructor flow still has not run | Separate the two statements |
 | `CHANGELOG.md` | "No contracts have been deployed from this repository yet" | Deployed from `133b18d`, a local branch of it | Correct once the commit is public |
 | `docs/review/PR9_REMEDIATION.md`, `PR_SUMMARY.md`, `VERIFICATION_RESULTS.md` | Deployment is not verified | As above | Leave these as dated history. Add a pointer if needed |
@@ -40,19 +40,15 @@ These do not conflict and should not be weakened:
 
 ## Actions on VELTRIXAE/Contract
 
-Not done here: they change another repository and need a maintainer's go-ahead.
+Maintainer decisions, 2026-11-04:
 
-1. Publish the commit on a dedicated branch. This changes history visibility only:
+| Action | Decision |
+| --- | --- |
+| Correct Contract's documents and add evidence copies, in a documentation-only PR | **Approved.** Not yet opened, because it needs a maintainer's write access |
+| Publish commit `133b18d` on Contract | **Not approved**, pending review of author metadata and licensing |
+| Extend the Pair WASM TTL | **Not approved** |
 
-   ```sh
-   git fetch /path/to/docs/evidence/contracts-deployment-work.bundle work/testnet-deployment-readiness
-   git push origin FETCH_HEAD:refs/heads/deployed/testnet-2026-11-02
-   ```
-
-2. Add `deployments/testnet.json` as a byte-for-byte copy of the preserved manifest. Do not retype it. Its `git_commit` must stay `133b18d`, since that is what was built, even though the file is added on a later commit.
-3. Correct the documents above, linking to this page and to the receipts. Suggested status:
-
-   > Testnet Factory and Router from commit `133b18d` are deployed and verified: code hashes, seven receipts and a byte-identical rebuild. This is an older build than `main`, which has not been deployed. There are zero pools and no executed swaps.
+Evidence copies belong in `docs/evidence/testnet-2026-11-02/` rather than `deployments/testnet.json`: Contract's scripts act on that directory, and its deploy script refuses to overwrite a manifest. Copies must stay byte-for-byte identical. Until the commit is on Contract, say that the build can't be reproduced from that repository alone.
 
 ## Reproduce the deployed build
 

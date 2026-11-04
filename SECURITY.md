@@ -17,7 +17,12 @@ Quote and swap responses are not guarantees. The client should still check prepa
 
 ## Reporting
 
-Report vulnerabilities privately through the repository Security Advisories page. Include affected revision, reproducible steps and impact; omit credentials. Do not open public issues containing exploitable details or user data. This project has no security audit claim; upstream audit reports cover their stated versions and scope only.
+**Private vulnerability reporting is not enabled on this repository as of 2026-11-04, and no security email address is published.** Until that changes:
+
+1. Check the repository's Security tab. If a **Report a vulnerability** button is shown, private reporting has been enabled, so use it.
+2. Otherwise, open a public issue titled "Security contact request" and ask a maintainer for a private way to report. **Do not include any details of the vulnerability.**
+
+Include the affected revision, reproducible steps and impact in the private report, and omit credentials. Never put exploitable details or user data in a public issue. No response time is promised. This project has no security audit claim; upstream audit reports cover their stated versions and scope only.
 
 ## Other controls and limits
 
