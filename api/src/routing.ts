@@ -18,6 +18,24 @@ function reserves(pool: Pool, from: string): [bigint, bigint] {
   if (from !== pool.token0 && from !== pool.token1) throw new ServiceError('INVALID_ROUTE', 'Pool does not contain token', 422);
   return from === pool.token0 ? [BigInt(pool.reserve0), BigInt(pool.reserve1)] : [BigInt(pool.reserve1), BigInt(pool.reserve0)];
 }
+/** Per-hop amounts along a path. Shared by route search and same-ledger router parity. */
+export function routeAmounts(kind: QuoteRequest['kind'], amount: bigint, path: string[], used: Pool[]): bigint[] {
+  const values = Array<bigint>(path.length);
+  if (kind === 'exactIn') {
+    values[0] = amount;
+    used.forEach((p, i) => values[i + 1] = output(values[i]!, ...reserves(p, path[i]!)));
+    return values;
+  }
+  values[used.length] = amount;
+  for (let i = used.length - 1; i >= 0; i--) {
+    const [rin, rout] = reserves(used[i]!, path[i]!);
+    values[i] = input(values[i + 1]!, rin, rout);
+    // The inverse formula can underfund after the pair's fee rounding: its constant-product check would reject
+    // this swap, so never advertise it. output(in) >= out is equivalent to that check.
+    if (output(values[i]!, rin, rout) < values[i + 1]!) throw new ServiceError('INSUFFICIENT_LIQUIDITY', 'Exact output cannot be funded after fee rounding', 422);
+  }
+  return values;
+}
 export interface RouteSearchStats { states: number; poolChecks: number; }
 export function findRoutes(req: QuoteRequest, pools: Pool[], stats?: RouteSearchStats): Route[] {
   const adjacency = new Map<string, Pool[]>();
@@ -34,14 +52,7 @@ export function findRoutes(req: QuoteRequest, pools: Pool[], stats?: RouteSearch
     const last = path.at(-1)!;
     if (last === req.tokenOut) {
       try {
-        const values = Array<bigint>(path.length);
-        if (req.kind === 'exactIn') {
-          values[0] = BigInt(req.amount);
-          used.forEach((p, i) => values[i + 1] = output(values[i]!, ...reserves(p, path[i]!)));
-        } else {
-          values[used.length] = BigInt(req.amount);
-          for (let i = used.length - 1; i >= 0; i--) values[i] = input(values[i + 1]!, ...reserves(used[i]!, path[i]!));
-        }
+        const values = routeAmounts(req.kind, BigInt(req.amount), path, used);
         // Compare actual output against the fee-free infinitesimal spot output, in integers.
         let spotNumerator = values[0]!, spotDenominator = 1n;
         used.forEach((p, i) => { const [rin, rout] = reserves(p, path[i]!); spotNumerator *= rout; spotDenominator *= rin; });
