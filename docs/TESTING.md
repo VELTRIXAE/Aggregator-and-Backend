@@ -154,7 +154,7 @@ Results on this branch, before CI. CI results are on the pull request.
 | npm run lint / npm run build | Both workspaces passed |
 | npm test | 76 API tests and 5 client tests passed |
 | Fuzz sensitivity | Temporarily breaking fee rounding, required-input rounding or the underfunding guard each makes the fuzz suite fail. The suite first missed the guard, so a targeted case was added |
-| `verifyPreparedSwap` | Accepts real encoder and assembly output. 26 altered transactions and fields are each rejected. Not run against a deployed aggregator, because none exists |
+| `verifyPreparedSwap` | Accepts real encoder and assembly output. 31 altered or invalid transactions are each rejected. Not run against a deployed aggregator, because none exists |
 | scripts/audit-rust.sh | Real scan passes with both known advisories printed. Fails on a new advisory, a passed review date, a stale entry and a failed scan, each exercised |
 | npm audit --audit-level=moderate | Zero vulnerabilities |
 | Docker build | Passed |
