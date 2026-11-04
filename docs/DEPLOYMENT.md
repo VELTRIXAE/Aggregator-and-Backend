@@ -23,7 +23,7 @@ npm run test:contracts
 npm run verify:deployment
 ```
 
-Manual contract deployment only:
+For the full gated procedure, read the [Testnet plan](TESTNET_LIVE_PLAN.md) first. Manual contract deployment only:
 
 ```sh
 DEPLOYER_IDENTITY=your-local-cli-identity APPROVE_TESTNET_DEPLOY=yes bash scripts/deploy-testnet.sh

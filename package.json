@@ -2,7 +2,7 @@
   "name": "veltrixae-aggregator",
   "version": "0.1.0",
   "private": true,
-  "description": "VELTRIXAE is a decentralized liquidity aggregation and trading infrastructure built on Stellar.",
+  "description": "VELTRIXAE decentralized liquidity aggregation and trading infrastructure on Stellar. Testnet stage: zero pools and no executable swaps.",
   "workspaces": [
     "api",
     "packages/frontend-client"
@@ -23,7 +23,8 @@
     "check:protocols": "node --import tsx api/src/check-protocols.ts",
     "lint": "npm run lint --workspaces",
     "benchmark:routing": "node --import tsx api/bench/routing.ts",
-    "evidence:testnet": "node --import tsx api/src/collect-evidence.ts"
+    "evidence:testnet": "node --import tsx api/src/collect-evidence.ts",
+    "plan:simulate": "node --import tsx api/src/simulate-testnet-plan.ts"
   },
   "engines": {
     "node": ">=22"

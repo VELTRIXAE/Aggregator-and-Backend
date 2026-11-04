@@ -124,3 +124,23 @@ Observed results on this branch, before CI. CI results are on the pull request.
 Not tested, because it would need a state-changing transaction or does not exist yet: quotes on a VELTRIXAE pool, aggregator behaviour on Testnet, swap simulation through an aggregator, wallet signing and execution.
 
 Rust formatting and Clippy are not part of this project's checks, and the pinned upstream sources are not modified here.
+
+## Testnet plan verification — 2026-11-04
+
+Merged `main` (`bd624d2`) was checked first, with no changes applied: lint and build passed, 67 API and 1 client tests passed, 153 Rust and 1 ABI contract tests passed (154), and `npm audit` reported zero vulnerabilities. CI passed on that commit.
+
+Results on this branch, before CI. CI results are on the pull request.
+
+| Check | Result |
+| --- | --- |
+| npm run lint / npm run build | Both workspaces passed |
+| npm test | 69 API tests and 1 client test passed: the new tests pin evidence and status wording |
+| npm run test:contracts, CLI 22.8.1 | 149 upstream, 11 WASM (4 authorization, 7 rehearsal) and 1 ABI test passed: 161 |
+| npm run test:contracts, CLI 28.1.0 | The same 161 passed. The optimizer gives a different aggregator hash, which the plan accounts for |
+| Deployed WASM rebuild from `133b18d` | Byte-identical for Factory, Router and Pair, using CLI 23.3.0 to 30.0.1. Not with 22.8.1, 23.2.1 or no optimizer |
+| npm run plan:simulate | 7 of 7 receipts match the chain. TTLs and fees recorded. Nothing signed or submitted |
+| npm run verify:deployment | Passed earlier in this review: AMM verified, zero pools, aggregator not deployed |
+| npm audit --audit-level=moderate | Zero vulnerabilities |
+| cargo audit (manual, not in CI) | Not clean: see [Rust advisories](RUST_ADVISORIES.md). Nothing suppressed |
+
+The rehearsal runs in the local Soroban test host with mocked authorization where noted in its source. It is not a live pool or swap. No plan step was executed.

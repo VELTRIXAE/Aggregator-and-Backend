@@ -11,21 +11,20 @@ Live quote path works against funded pools on the public RPC, with fail-closed g
 ## 2. Decisions that need a person
 
 - Answer the [license questions](LICENSE_REVIEW.md). Blocks redistribution and any aggregator deployment.
-- Publish deployed source commit `133b18d` in VELTRIXAE/Contract, so the build can be reproduced publicly. It exists today only in the bundle in `docs/evidence/`.
-- Reconcile VELTRIXAE/Contract `docs/TESTNET_VERIFICATION.md`, which says no deployment evidence is available, with the receipts recorded here.
+- Publish deployed source commit `133b18d` in VELTRIXAE/Contract and correct its records, as listed in the [reconciliation](DEPLOYMENT_RECONCILIATION.md).
 - Decide whether to redeploy from current Contract `main`. Its contracts differ materially from the deployed ones, including atomic initialization and the exact-output rounding fix.
 
 **Exit evidence:** recorded decisions, with links.
 
 ## 3. First real VELTRIXAE liquidity on Testnet
 
-Needs explicit approval for each state-changing step: pool creation and funding with test assets.
+Follow the [Testnet plan](TESTNET_LIVE_PLAN.md). It needs explicit approval for each state-changing step: TTL extension, pool creation and funding with test assets.
 
 **Exit evidence:** real pool and token IDs with transaction receipts, `/readiness` reporting `funded`, and quote parity on the VELTRIXAE router.
 
 ## 4. Aggregator on Testnet and a wallet-approved swap
 
-Needs explicit approval, plus question 4 of the license review answered. Issues [01](issues/01-prepare-swap-ledger-check.md) and [02](issues/02-execution-deadline.md) must be settled first.
+Follow the [Testnet plan](TESTNET_LIVE_PLAN.md). It needs explicit approval, plus question 4 of the license review answered. Issues [01](issues/01-prepare-swap-ledger-check.md) and [02](issues/02-execution-deadline.md) must be settled first.
 
 **Exit evidence:** aggregator ID, hash, admin and pause state verified; a Testnet swap prepared here, reviewed and signed by a wallet, and its receipt recorded.
 

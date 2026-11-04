@@ -1,5 +1,8 @@
 //! VELTRIXAE boundary tests against the preserved, compiled upstream aggregator.
 #[cfg(test)]
+mod rehearsal;
+
+#[cfg(test)]
 mod tests {
     use soroban_sdk::{testutils::Address as _, vec, Address, Env, Vec};
     mod aggregator {
