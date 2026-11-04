@@ -9,3 +9,8 @@ Observed on 2026-11-01; revalidation is required before use.
 Aquarius constants were cross-checked against https://docs.aqua.network/developers/code-examples/prerequisites-and-basics. Phoenix candidates come from the pinned upstream custom testing deployment. No reviewed Comet Testnet ID was available. Absence of an accessible candidate is not a protocol-wide nonexistence claim.
 
 Do not activate these candidates, deploy, fund accounts/pools or push code based on this report. The active config/testnet.json remains unchanged.
+
+## 2026-11-04 funding-readiness evidence
+
+- `testnet-verification-2026-11-04.json` is the output of `npm run evidence:testnet -- --trials 20`, using only read-only RPC calls. Public Soroswap entries are a reference for funded-pool behaviour, not VELTRIXAE liquidity or active configuration. It supersedes neither the receipts nor the deployment manifest above.
+- `quote-liveness-baseline-2026-11-04.txt` is the quote success baseline from before the changes, at commit 97d4fa1.

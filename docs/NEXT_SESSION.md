@@ -1,5 +1,7 @@
 # Resume checkpoint — AMM Testnet deployment complete
 
+Historical checkpoint from 2026-11-02. For current status see [funding evidence](FUNDING_EVIDENCE.md).
+
 Verified on 2026-11-02. All seven transactions succeeded. Do not repeat deployment or initialization.
 
 - Factory: CCBE2WCHO5PY6WVXTKZLIZA446M43RTOVD4S6XZYHPHJEL7K33LHW6RA, initialized with the reviewed fee setter.

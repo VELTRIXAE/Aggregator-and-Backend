@@ -29,8 +29,17 @@ export interface Pool { id: string; protocol: 'Soroswap'; token0: string; token1
 export interface Snapshot { pools: Pool[]; ledger: number; observedAt: number; }
 export interface Route { path: string[]; pools: string[]; protocol: 'Soroswap'; amountIn: string; amountOut: string; fees: {token: string; amount: string; feeBps: number}[]; priceImpactBps: number; }
 export interface Quote { network: 'testnet'; kind: QuoteRequest['kind']; tokenIn: string; tokenOut: string; amountIn: string; amountOut: string; minimumReceived: string; maximumInput: string; slippageBps: number; routes: Route[]; selectedRoute: Route; ledger: number; observedAt: number; expiresAt: number; executable: false; networkFee: null; }
+export type ReadinessBlocker = 'NETWORK_UNVERIFIED' | 'AMM_NOT_CONFIGURED' | 'AMM_UNVERIFIED' | 'NO_POOLS' | 'NO_FUNDED_POOLS' | 'AGGREGATOR_NOT_DEPLOYED';
+/** Observed gates only. The API never signs or submits; swap preparation returns unsigned XDR for a wallet to approve. */
+export interface Readiness {
+  network: 'testnet'; mainnetEnabled: false; custody: 'none'; submitsTransactions: false; checkedAt: number; ledger: number | null;
+  networkVerified: boolean; deployment: {status: 'verified' | 'not-configured' | 'failed'; code: string | null};
+  liquidity: {status: 'funded' | 'unfunded' | 'empty' | 'unknown'; pools: number | null; fundedPools: number | null; code: string | null};
+  aggregator: {status: 'not-deployed' | 'verified' | 'unknown'};
+  quotesAvailable: boolean; swapPreparationAvailable: boolean; blockers: ReadinessBlocker[];
+}
 export interface Chain {
-  validateQuote(quote: Quote): Promise<void>; snapshot(): Promise<Snapshot>; tokens(): Promise<Token[]>; status(): Promise<unknown>;
+  validateQuote(quote: Quote): Promise<void>; snapshot(): Promise<Snapshot>; tokens(): Promise<Token[]>; status(): Promise<unknown>; readiness(): Promise<Readiness>;
   transaction(hash: string): Promise<unknown>;
   prepareSwap(request: QuoteRequest, publicKey: string): Promise<PreparedSwap>;
 }

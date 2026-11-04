@@ -22,9 +22,11 @@
     "check:contracts-abi": "node --import tsx api/src/check-contract-interfaces.ts",
     "check:protocols": "node --import tsx api/src/check-protocols.ts",
     "lint": "npm run lint --workspaces",
-    "benchmark:routing": "node --import tsx api/bench/routing.ts"
+    "benchmark:routing": "node --import tsx api/bench/routing.ts",
+    "evidence:testnet": "node --import tsx api/src/collect-evidence.ts"
   },
   "engines": {
     "node": ">=22"
-  }
+  },
+  "license": "MIT"
 }

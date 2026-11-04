@@ -28,3 +28,19 @@ All planned corrections in the table were implemented and covered by focused reg
 TypeScript workspace builds pass. API unit/API test files pass in the sandbox; frontend test runner fails there without useful diagnostics and will be retried with required runtime permissions before diagnosing a product defect. All live checks are read-only. No user transaction signing, pool creation, funding or aggregator deployment is part of this audit.
 
 Existing strengths: strict Zod/checksummed IDs, bigint/i128 pricing, direct/multi-hop exact input/output routes, router parity simulation, ledger/age checks, unsigned swap preparation, rate limits, exact CORS origins, Testnet network checks, code hash checks, RPC timeouts, no-store HTTP responses, mocked/live test separation, Dependabot, preserved attribution/licenses.
+
+## Funding-readiness review — 2026-11-04
+
+| Finding | Evidence | Resolution |
+| --- | --- | --- |
+| CI `contracts` job failed on every recent `main` run | `stellar contract optimize` needs the CLI's `opt` feature, which `scripts/setup.sh` did not install | Install a checksum-pinned release binary that includes it |
+| The API could not quote real pools | 0 of 12 live attempts succeeded: every read had to share one ledger across sequential calls | Consistency rules now apply to mutable reserves, with stricter same-ledger parity. 17 of 20 succeed |
+| Verification cost too many RPC calls | Two calls per contract on each snapshot exceeded the time budget | One atomic `getLedgerEntries` call, which still hashes code bytes locally |
+| Exact-output quotes could be unfillable | 2 of 400,000 fuzzed inputs fail the pair's constant-product check | Such routes are excluded, with regression fixtures |
+| Parity did not prove what it implied | Only amounts were compared, against reserves from an earlier read | Router and fresh reserves must share a ledger, and local math must match on them. Divergence (`QUOTE_MISMATCH`) is now separate from moved reserves (`STALE_STATE`) |
+| `verify:deployment` crashed with a stack trace on timeout, and no gate was visible | Observed live | Structured output, an accurate exit code and `GET /api/v1/readiness` |
+| No build-level guard for custody or mainnet | Depended on review | `api/test/safety.test.ts` |
+
+Checked and found correct, so left unchanged: fee and rounding formulas against deployed source and a live router, `transaction()` on a real failed transaction, slippage rounding, route ranking, unsigned assembly and time bounds, and error redaction.
+
+One check was narrowed and should be reviewed: pool identity reads no longer have to share a ledger with reserves, and may be cached with discovery. The pair source at the deployed commit sets identity only in `initialize` and has no upgrade entry point, and the code hash is checked on every snapshot. One check was deliberately left strict despite an expected liveness cost: see [issue draft 01](issues/01-prepare-swap-ledger-check.md). Open risks are in [funding evidence](FUNDING_EVIDENCE.md).

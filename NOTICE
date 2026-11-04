@@ -1,0 +1,34 @@
+VELTRIXAE Aggregator and Backend
+Copyright (c) 2026 VELTRIXAE
+
+The MIT license in LICENSE covers original VELTRIXAE work in this repository.
+It does not relicense third-party material. See docs/LICENSE_REVIEW.md, which
+also records unresolved license questions.
+
+Third-party material:
+
+upstream/soroswap (git submodule, not vendored source)
+  Soroswap Aggregator, https://github.com/soroswap/aggregator
+  Pinned at 84de10e0f8d26168b4a76f8c23b963e50917517c.
+  Authors declared by upstream include coderipper and esteblock (PaltaLabs).
+  LICENSE file: Apache License 2.0. Cargo workspace declaration: GPL-3.0.
+  Nested protocol submodules keep their own licenses, including Soroswap Core,
+  Phoenix (GPL-3.0) and Comet (AGPL-3.0).
+
+patches/soroswap-deployer-test-abi.patch
+  Contains lines of the upstream Soroswap Aggregator deployer test. Those lines
+  remain under upstream's terms and are not relicensed by LICENSE.
+
+api/src/routing.ts
+  Quote formulas are written to match soroswap-library in Soroswap Core, whose
+  manifest declares GPL-3.0. Soroswap Core is in turn derived in design from
+  Uniswap V2. See docs/LICENSE_REVIEW.md, question 2.
+
+docs/evidence/contracts-testnet-wasm-2026-11-02.tar.gz
+docs/evidence/contracts-deployment-work.bundle
+  Build output and source history of VELTRIXAE/Contract, which is derived from
+  Soroswap Core. They carry that repository's LICENSE, LICENSE-APACHE and
+  NOTICE, not this repository's MIT license.
+
+No VELTRIXAE contract has an independent security audit. Audit reports inside
+the upstream tree cover the upstream versions and scope they state.

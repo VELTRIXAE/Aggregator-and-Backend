@@ -23,3 +23,12 @@ test('live configured AMM deployment and complete pool discovery, including an e
  assert.equal(new Set(snapshot.pools.map(p=>p.id)).size,snapshot.pools.length);
  for(const pool of snapshot.pools)assert.equal(pool.ledger,snapshot.ledger);
 });
+
+test('live readiness keeps mainnet disabled and reports observed gates without inventing liquidity', {skip:!enabled},async()=>{
+ const {chain}=await loadConfig();
+ const readiness=await chain.readiness();
+ assert.equal(readiness.mainnetEnabled,false);assert.equal(readiness.submitsTransactions,false);assert.equal(readiness.networkVerified,true);
+ assert.equal(readiness.deployment.status,'verified',String(readiness.deployment.code));
+ if(readiness.liquidity.status==='empty'){assert.equal(readiness.quotesAvailable,false);assert.ok(readiness.blockers.includes('NO_POOLS'));}
+ if(!chain.manifest.veltrixae){assert.equal(readiness.swapPreparationAvailable,false);assert.ok(readiness.blockers.includes('AGGREGATOR_NOT_DEPLOYED'));}
+});
