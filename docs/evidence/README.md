@@ -14,3 +14,5 @@ Do not activate these candidates, deploy, fund accounts/pools or push code based
 
 - `testnet-verification-2026-11-04.json` is the output of `npm run evidence:testnet -- --trials 20`, using only read-only RPC calls. Public Soroswap entries are a reference for funded-pool behaviour, not VELTRIXAE liquidity or active configuration. It supersedes neither the receipts nor the deployment manifest above.
 - `quote-liveness-baseline-2026-11-04.txt` is the quote success baseline from before the changes, at commit 97d4fa1.
+- `testnet-plan-simulation-2026-11-04.json` is the output of `npm run plan:simulate`: receipts compared with the chain, current expiries and simulated fees. Nothing was signed or submitted, and its `create_pair` result used placeholder tokens.
+- `SHA256SUMS` pins every evidence file. A test fails if one changes. Add new evidence as new files, and add them to this list. Do not edit existing files.

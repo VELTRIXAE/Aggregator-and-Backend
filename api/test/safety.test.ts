@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {StrKey} from '@stellar/stellar-sdk';
@@ -47,4 +48,24 @@ test('the manual deployment script stays gated, Testnet-only and verified first'
  assert.match(script,/APPROVE_TESTNET_DEPLOY:\?/);assert.match(script,/== yes \]\] \|\| exit 1/);
  assert.match(script,/Test SDF Network ; September 2015/);assert.equal(/Public Global|--network mainnet|pubnet/.test(script),false);
  assert.ok(script.indexOf('npm run verify:deployment')<script.indexOf('stellar contract deploy'));
+});
+test('preserved deployment evidence is unchanged and consistent with the active manifest',()=>{
+ const sums=read('docs/evidence/SHA256SUMS').trim().split('\n').map(line=>line.split(/\s+/) as [string,string]);
+ assert.ok(sums.length>=11);
+ for(const [hash,file] of sums) assert.equal(createHash('sha256').update(readFileSync(root+'docs/evidence/'+file)).digest('hex'),hash,`${file} changed; add new evidence as a new file`);
+ const pinned=new Set(sums.map(([,file])=>file));
+ for(const file of tracked.filter(f=>f.startsWith('docs/evidence/')&&!/\/(README\.md|SHA256SUMS)$/.test(f))) assert.ok(pinned.has(file.slice('docs/evidence/'.length)),`${file} is not pinned in SHA256SUMS`);
+ const record=JSON.parse(read('docs/evidence/contracts-testnet-deployment-2026-11-02.json'));
+ const completion=JSON.parse(read('docs/evidence/contracts-testnet-completion-2026-11-02.json'));
+ const manifest=manifestSchema.parse(JSON.parse(read('config/testnet.json')));
+ assert.deepEqual(manifest.soroswap,{factory:record.contracts.factory.id,router:record.contracts.router.id,factoryWasmHash:record.contracts.factory.wasm_sha256,routerWasmHash:record.contracts.router.wasm_sha256,pairWasmHash:record.contracts.pair.wasm_hash});
+ assert.equal(completion.receipts.length,7);
+ assert.ok(completion.receipts.every((r:{status:string})=>r.status==='SUCCESS'));
+ assert.equal(completion.receipts.reduce((sum:bigint,r:{feeChargedStroops:string})=>sum+BigInt(r.feeChargedStroops),0n),97114662n);
+});
+test('public status documents state zero pools and no executable swaps until a real pool is recorded',()=>{
+ const record=JSON.parse(read('docs/evidence/contracts-testnet-deployment-2026-11-02.json'));
+ assert.deepEqual(record.pools,[]);
+ for(const file of ['README.md','docs/FUNDING_EVIDENCE.md']) assert.match(read(file),/currently has zero pools and no executable swaps/,file);
+ assert.equal(manifestSchema.parse(JSON.parse(read('config/testnet.json'))).veltrixae,null);
 });

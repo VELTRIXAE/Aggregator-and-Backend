@@ -1,0 +1,166 @@
+{
+  "checkedAt": "2026-11-04T18:45:18.206Z",
+  "method": "Read-only: getLedgerEntries, getAccount, getTransaction and simulateTransaction. No key was used; nothing was signed or submitted.",
+  "caution": "Simulation fees are estimates for one ledger state, not budgets or quotes. Re-simulate immediately before any approved transaction.",
+  "rpc": {
+    "url": "https://soroban-testnet.stellar.org",
+    "passphrase": "Test SDF Network ; September 2015",
+    "protocolVersion": 30,
+    "latestLedger": 5558850
+  },
+  "deployerAccount": {
+    "address": "GCOK3K62FKMGHI4AJRRNEN6WJQUERE5ZPOHEKF6BB5M4GH3BDCQQMXFL",
+    "balanceStroops": "99902885338",
+    "note": "Public account data. The key was not used."
+  },
+  "receipts": [
+    {
+      "operation": "pair_upload",
+      "hash": "7bfc9d2277ffd53a9d401473308b8494d1e0cdb06d093e1cc001ca7d9836e4d9",
+      "chain": "SUCCESS",
+      "chainLedger": 5510476,
+      "source": "GCOK3K62FKMGHI4AJRRNEN6WJQUERE5ZPOHEKF6BB5M4GH3BDCQQMXFL",
+      "feeChargedStroops": "15982590",
+      "matchesRecord": true
+    },
+    {
+      "operation": "factory_upload",
+      "hash": "981b5da90bd77e116839f40681f97f2171b2e659cb9500e0d8b1dfa1d5bc2c03",
+      "chain": "SUCCESS",
+      "chainLedger": 5510477,
+      "source": "GCOK3K62FKMGHI4AJRRNEN6WJQUERE5ZPOHEKF6BB5M4GH3BDCQQMXFL",
+      "feeChargedStroops": "5674156",
+      "matchesRecord": true
+    },
+    {
+      "operation": "router_upload",
+      "hash": "d889ec70187cabeb42b2bde004b83e7404c21465fc68b4882328f2c437657cb5",
+      "chain": "SUCCESS",
+      "chainLedger": 5510478,
+      "source": "GCOK3K62FKMGHI4AJRRNEN6WJQUERE5ZPOHEKF6BB5M4GH3BDCQQMXFL",
+      "feeChargedStroops": "13141542",
+      "matchesRecord": true
+    },
+    {
+      "operation": "factory_deploy",
+      "hash": "a8ff0145b02f4d825c75fbe986065090acbbd40beba24c122fd90a8d6acf4aef",
+      "chain": "SUCCESS",
+      "chainLedger": 5510479,
+      "source": "GCOK3K62FKMGHI4AJRRNEN6WJQUERE5ZPOHEKF6BB5M4GH3BDCQQMXFL",
+      "feeChargedStroops": "14898",
+      "matchesRecord": true
+    },
+    {
+      "operation": "factory_initialize",
+      "hash": "6163766dce774f96180a27802052349838bb8b7cbcac37050c279264191c8511",
+      "chain": "SUCCESS",
+      "chainLedger": 5510634,
+      "source": "GCOK3K62FKMGHI4AJRRNEN6WJQUERE5ZPOHEKF6BB5M4GH3BDCQQMXFL",
+      "feeChargedStroops": "18769580",
+      "matchesRecord": true
+    },
+    {
+      "operation": "router_deploy",
+      "hash": "46c46fc26fbf9dc3ec799172ccdbf13645f7e8184e229d01e776b085744c7bba",
+      "chain": "SUCCESS",
+      "chainLedger": 5510635,
+      "source": "GCOK3K62FKMGHI4AJRRNEN6WJQUERE5ZPOHEKF6BB5M4GH3BDCQQMXFL",
+      "feeChargedStroops": "14927",
+      "matchesRecord": true
+    },
+    {
+      "operation": "router_initialize",
+      "hash": "74c6c3fbbd59b56a5882185d2ee64236705a8f633bce5bb42ad4a738d8b90993",
+      "chain": "SUCCESS",
+      "chainLedger": 5515146,
+      "source": "GCOK3K62FKMGHI4AJRRNEN6WJQUERE5ZPOHEKF6BB5M4GH3BDCQQMXFL",
+      "feeChargedStroops": "43516969",
+      "matchesRecord": true
+    }
+  ],
+  "ttl": {
+    "extendToLedgers": 535680,
+    "pairCode": {
+      "label": "Extend Pair WASM TTL",
+      "simulated": true,
+      "restoreRequired": false,
+      "minResourceFeeStroops": "70064367",
+      "minResourceFeeXlm": 7.0064367,
+      "liveUntilLedger": 5631435,
+      "ledgersRemaining": 72585,
+      "approximateDaysRemaining": 4.2
+    },
+    "factoryCode": {
+      "label": "Extend Factory WASM TTL",
+      "simulated": true,
+      "restoreRequired": false,
+      "minResourceFeeStroops": "3520110",
+      "minResourceFeeXlm": 0.352011,
+      "liveUntilLedger": 6029034,
+      "ledgersRemaining": 470184,
+      "approximateDaysRemaining": 27.21
+    },
+    "routerCode": {
+      "label": "Extend Router WASM TTL",
+      "simulated": true,
+      "restoreRequired": false,
+      "minResourceFeeStroops": "7586023",
+      "minResourceFeeXlm": 0.7586023,
+      "liveUntilLedger": 6033546,
+      "ledgersRemaining": 474696,
+      "approximateDaysRemaining": 27.47
+    },
+    "factoryInstance": {
+      "label": "Extend Factory instance TTL",
+      "simulated": true,
+      "restoreRequired": false,
+      "minResourceFeeStroops": "25341",
+      "minResourceFeeXlm": 0.0025341,
+      "liveUntilLedger": 6029034,
+      "ledgersRemaining": 470184,
+      "approximateDaysRemaining": 27.21
+    },
+    "routerInstance": {
+      "label": "Extend Router instance TTL",
+      "simulated": true,
+      "restoreRequired": false,
+      "minResourceFeeStroops": "17342",
+      "minResourceFeeXlm": 0.0017342,
+      "liveUntilLedger": 6033546,
+      "ledgersRemaining": 474696,
+      "approximateDaysRemaining": 27.47
+    }
+  },
+  "aggregatorUpload": [
+    {
+      "label": "Upload aggregator WASM",
+      "simulated": true,
+      "restoreRequired": false,
+      "minResourceFeeStroops": "23063542",
+      "minResourceFeeXlm": 2.3063542,
+      "sizeBytes": 30155,
+      "localBuildSha256": "986cc07eb097e52d06a3725675859a3d09bce17299ee033a51ce9506a4293147"
+    },
+    {
+      "label": "Upload deployer WASM",
+      "simulated": true,
+      "restoreRequired": false,
+      "minResourceFeeStroops": "1519503",
+      "minResourceFeeXlm": 0.1519503,
+      "sizeBytes": 1220,
+      "localBuildSha256": "cbc193e5e54784d65fa45dcb2bcc636668bd17f1b5a3da3e794768e490694c07"
+    }
+  ],
+  "firstPool": {
+    "label": "create_pair on the deployed Factory: real code and state, placeholder tokens",
+    "simulated": true,
+    "restoreRequired": false,
+    "minResourceFeeStroops": "70656566",
+    "minResourceFeeXlm": 7.0656566
+  },
+  "notSimulatable": {
+    "deployerAndAggregatorDeployment": "Their WASM is not on the ledger until uploaded, so these can only be simulated after the upload step.",
+    "addLiquidity": "Needs a funded liquidity account holding both tokens, which does not exist yet.",
+    "swap": "Needs a deployed aggregator and a funded pool."
+  }
+}
