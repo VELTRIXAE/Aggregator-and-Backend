@@ -161,3 +161,18 @@ Results on this branch, before CI. CI results are on the pull request.
 | npm run test:contracts | Not rerun locally, since no contract or contract tooling changed. CI runs it |
 
 Run with another seed using `FUZZ_SEED=<number> npm test --workspace api`. Underfunded inputs are rare, so a custom seed may not reach one. Only the default seed is required to, which keeps the guard's sensitivity check deterministic in CI.
+
+## Swap preparation across ledger transitions — 2026-11-05
+
+`StellarChain.prepareSwap` rejects a simulation whose ledger differs from the quote's ledger. The chain tests now measure this gate with deterministic transport fixtures instead of assuming it. The fixtures cover four preparation cases: same ledger, older simulation ledger, later simulation ledger and an expired quote. They also verify that a changed swap limit still fails simulation, so the gate is not masking an unrelated acceptance.
+
+These are mock fixtures. They are not live quotations, not a deployed aggregator and not evidence of a live swap. The separate aggregator is still not deployed, so no live swap preparation was measured.
+
+Reproduce with Node 22+:
+
+- `npm ci --ignore-scripts`
+- `npm run lint`
+- `npm run build`
+- `npm test`
+
+The measurement is kept separate from any policy change. Older and expired state remains rejected, and no test bypasses deployment verification. Whether to retain the strict check or relax it is recorded in the decision note for issue 17; relaxing it requires separate maintainer review.

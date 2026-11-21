@@ -101,6 +101,64 @@ test('prepares only fresh server-derived quotes against a verified aggregator',a
  const mixed=new StellarChain(configured,transport({simulateSwap:async()=>({transactionXdr:'fixture',resourceFee:'1',totalFee:'101',ledger:124})}));
  await assert.rejects(()=>mixed.prepareSwap(req,publicKey),/different ledger/);
 });
+test('measures prepareSwap outcomes across same, older, later and expired ledger transitions',async()=>{
+ // Deterministic local-host fixtures: no deployment, funding, signing or submission.
+ // The strict ledger equality gate in api/src/chain.ts is intentionally unchanged.
+ const configured={...manifest,veltrixae:{aggregator,aggregatorWasmHash:hash}};
+ const code=(c:string)=>(e:unknown)=>e instanceof ServiceError&&e.code===c;
+ const simulateAt=(ledger:number):Transport['simulateSwap']=>async()=>({transactionXdr:'unsigned-fixture-not-a-live-transaction',resourceFee:'1',totalFee:'101',ledger});
+ const trials=3;
+ const counts={accepted:0,rejected:0};
+ const outcomes:Record<string,{accepted:number;rejected:number;codes:string[]}>={
+  same:{accepted:0,rejected:0,codes:[]},
+  older:{accepted:0,rejected:0,codes:[]},
+  later:{accepted:0,rejected:0,codes:[]},
+  expired:{accepted:0,rejected:0,codes:[]},
+  'limits-changed':{accepted:0,rejected:0,codes:[]},
+ };
+ const record=async(name:string,run:()=>Promise<unknown>,expected:string|'accept')=>{
+  for(let i=0;i<trials;i++){
+   try{await run();outcomes[name]!.accepted++;counts.accepted++;assert.equal(expected,'accept',`${name} trial ${i} unexpectedly accepted`);}
+   catch(e:unknown){
+    if(expected==='accept')throw e;
+    assert.ok(e instanceof ServiceError,`${name} trial ${i} must reject with a ServiceError`);
+    assert.equal(e.code,expected,`${name} trial ${i}`);
+    outcomes[name]!.rejected++;outcomes[name]!.codes.push(e.code);counts.rejected++;
+   }
+  }
+ };
+ // Same ledger as the quote: accepted by the current strict gate.
+ await record('same',()=>new StellarChain(configured,transport({simulateSwap:simulateAt(123)})).prepareSwap(reqIn,publicKey),'accept');
+ // Older simulation ledger: rejected as inconsistent state.
+ await record('older',()=>new StellarChain(configured,transport({simulateSwap:simulateAt(122)})).prepareSwap(reqIn,publicKey),'INCONSISTENT_STATE');
+ // Later simulation ledger: also rejected by the current strict gate.
+ await record('later',()=>new StellarChain(configured,transport({simulateSwap:simulateAt(124)})).prepareSwap(reqIn,publicKey),'INCONSISTENT_STATE');
+ // Expired quote: rejected before simulation as stale state.
+ await record('expired',()=>{
+  const expired={...quote(reqIn,snapshot()),expiresAt:Date.now()-1};
+  const chain=new StellarChain(configured,transport({simulateSwap:simulateAt(123)}));
+  return chain.prepareSwap(expired,publicKey);
+ },'STALE_STATE');
+ // Reserves moved so the quoted swap limits are no longer met: simulation must fail.
+ await record('limits-changed',()=>{
+  const base=transport();
+  const moved=transport({read:async(id,m,a)=>{
+   if(m==='get_reserves')return {value:[1000000n,3000000n],ledger:123};
+   if(m==='router_get_amounts_out')return {value:[10000n,output(10000n,1000000n,3000000n)],ledger:123};
+   return base.read(id,m,a);
+  },simulateSwap:async()=>{throw new ServiceError('SIMULATION_FAILED','swap limits not met');}});
+  return new StellarChain(configured,moved).prepareSwap(reqIn,publicKey);
+ },'SIMULATION_FAILED');
+ // Reproducible report: assumptions, transitions, trial counts and outcomes.
+ const report={assumptions:'local-host mocks of reviewed interfaces; no live deployment',quoteLedger:123,trialsPerCase:trials,outcomes,counts};
+ console.log('prepareSwap ledger-transition measurement',JSON.stringify(report));
+ assert.deepEqual(outcomes.same,{accepted:trials,rejected:0,codes:[]});
+ assert.deepEqual(outcomes.older,{accepted:0,rejected:trials,codes:Array(trials).fill('INCONSISTENT_STATE')});
+ assert.deepEqual(outcomes.later,{accepted:0,rejected:trials,codes:Array(trials).fill('INCONSISTENT_STATE')});
+ assert.deepEqual(outcomes.expired,{accepted:0,rejected:trials,codes:Array(trials).fill('STALE_STATE')});
+ assert.deepEqual(outcomes['limits-changed'],{accepted:0,rejected:trials,codes:Array(trials).fill('SIMULATION_FAILED')});
+ assert.equal(counts.accepted,trials);assert.equal(counts.rejected,trials*4);
+});
 
 test('network status exposes stable fields instead of raw ledger and transaction metadata',async()=>{
  const chain=new StellarChain(manifest,transport({latest:async()=>({sequence:123,closeTime:String(Math.floor(Date.now()/1000)),metadataXdr:{unrelated:'large ledger data'}})}));

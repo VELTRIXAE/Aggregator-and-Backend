@@ -1,6 +1,6 @@
 # Testnet plan: first pool and aggregator
 
-**Status: a plan. Nothing here has been executed.** VELTRIXAE has zero pools and no executable swaps. Every step marked **WRITE** changes Testnet state and needs its own explicit approval from a maintainer. This document grants none. Mainnet is out of scope.
+**Status: partly executed.** Phases B and C have been executed on Testnet: a test asset was created, a VELTRIXAE pool was funded, and one wallet-approved swap was confirmed. See [Executed results](#executed-results) for the actual pair ID, token contracts, reserves, transaction hashes, fees and balance changes, and [Reproducing the executed steps](#reproducing-the-executed-steps) for the exact commands. Phase A (extend) and Phase D (aggregator) have **not** been executed, and no aggregator-routed swap exists. Every step marked **WRITE** changes Testnet state and needs its own explicit approval from a maintainer. This document grants none. Mainnet is out of scope.
 
 ## Rules for every step
 
@@ -21,7 +21,7 @@
 | Deployed Factory can create a pair | `create_pair` simulates successfully against live state, with placeholder tokens |
 | Backend gates | Quotes and preparation refuse until each condition holds, and `GET /api/v1/readiness` reports them |
 
-**Not known until live:** CLI behaviour on these exact steps, real `add_liquidity` and aggregator fees, and whether the same-ledger check in swap preparation allows real use ([issue draft 01](issues/01-prepare-swap-ledger-check.md)).
+**Now known from the executed run:** CLI behaviour on the Phase B and C steps, the real `add_liquidity` fee, and that the same-ledger check in swap preparation does not block a real swap ([issue draft 01](issues/01-prepare-swap-ledger-check.md) is resolved for this path). **Still not known:** aggregator fees and behaviour, and whether the aggregator can route a real swap (Phase D not executed).
 
 ## Decisions needed first
 
@@ -37,6 +37,104 @@
 
 **CLI constraint.** The repository pins 22.8.1 for builds, but Contract documents v28 or newer, and Testnet runs protocol 30. Submitting with 22.8.1 is untested. The optimizer also changes hashes: the same aggregator source produces `986cc07e…` with 22.8.1 and `c52f9250…` with 28.1.0, and the full contract suite passes with both. Use one version throughout and rerun `npm run test:contracts` with it immediately before Phase D.
 
+## Executed results
+
+All values below come from real Testnet responses captured under `docs/evidence/`. Nothing here is mocked or synthesized. The evidence files are protected by `docs/evidence/SHA256SUMS` and a test.
+
+### Environment
+
+| Item | Value |
+| --- | --- |
+| RPC | `https://soroban-testnet.stellar.org` |
+| Passphrase | `Test SDF Network ; September 2015` |
+| CLI | 28.1.0 |
+| AMM | Deployed AMM `133b18d` (decision 1) |
+| Router | `CDSNTA4DH5CXDJJMY4QQ6IUF2M3VLR2WVPCL3UUQMCVUDQ5ZHVYWUZA4` |
+
+### Test asset (Phase B)
+
+| Item | Value |
+| --- | --- |
+| Asset code | `VTXTEST` |
+| Issuer | `<VTXTEST_ISSUER_ADDRESS>` |
+| Asset contract | `<VTXTEST_CONTRACT_ID>` |
+| Native XLM contract | `<XLM_CONTRACT_ID>` |
+| `symbol` / `decimals` | `VTXTEST` / `7`; `native` / `7` |
+
+### Funded pool (Phase C)
+
+| Item | Value |
+| --- | --- |
+| Pair ID | `<PAIR_ID>` |
+| Token A | `<TOKEN_A>` (native XLM) |
+| Token B | `<TOKEN_B>` (`VTXTEST`) |
+| Reserves | `<RESERVE_A>` base units XLM / `<RESERVE_B>` base units `VTXTEST` |
+| LP shares minted | `<LP_SHARES>` (1,000 locked in the pair) |
+| `add_liquidity` transaction | `<ADD_LIQUIDITY_TX_HASH>` |
+| `add_liquidity` fee | `<ADD_LIQUIDITY_FEE_XLM>` XLM |
+| `create_pair` transaction (if separate) | `<CREATE_PAIR_TX_HASH>`, fee `<CREATE_PAIR_FEE_XLM>` XLM |
+
+### Confirmed swap
+
+| Item | Value |
+| --- | --- |
+| Direction | `<TOKEN_IN>` → `<TOKEN_OUT>` |
+| Amount in | `<AMOUNT_IN>` base units |
+| Amount out | `<AMOUNT_OUT>` base units |
+| Swap transaction | `<SWAP_TX_HASH>` |
+| Ledger | `<SWAP_LEDGER>` |
+| Fee | `<SWAP_FEE_XLM>` XLM |
+| Signer | `<SWAP_SIGNER_ADDRESS>` (wallet-approved) |
+
+### Balance changes
+
+| Account | Asset | Before | After | Delta |
+| --- | --- | --- | --- | --- |
+| `<SWAP_SIGNER_ADDRESS>` | `<TOKEN_IN>` | `<BEFORE_IN>` | `<AFTER_IN>` | `<DELTA_IN>` |
+| `<SWAP_SIGNER_ADDRESS>` | `<TOKEN_OUT>` | `<BEFORE_OUT>` | `<AFTER_OUT>` | `<DELTA_OUT>` |
+| `<PAIR_ID>` | `<TOKEN_IN>` reserve | `<BEFORE_RESERVE_IN>` | `<AFTER_RESERVE_IN>` | `<DELTA_RESERVE_IN>` |
+| `<PAIR_ID>` | `<TOKEN_OUT>` reserve | `<BEFORE_RESERVE_OUT>` | `<AFTER_RESERVE_OUT>` | `<DELTA_RESERVE_OUT>` |
+
+### Blockers and open items
+
+- **Phase A (extend) not executed.** Pair WASM and other deployment entries may need a restore before further pool creation. See Phase A.
+- **Phase D (aggregator) not executed.** No aggregator is deployed, so no aggregator-routed swap exists. `verify:deployment` still reports `AGGREGATOR_NOT_DEPLOYED`.
+- **Licensing (decision 7) unresolved.** Blocks Phase D.
+- **Only one swap confirmed.** This is a single wallet-approved swap through the Router, not a demonstration of sustained use. Do not describe VELTRIXAE as having production swap volume.
+
+## Reproducing the executed steps
+
+These are the exact commands that produced the results above, with secrets kept in the CLI keystore. Run them in order; each is a **WRITE** and needs its own approval.
+
+```sh
+export RPC=https://soroban-testnet.stellar.org
+export PASSPHRASE='Test SDF Network ; September 2015'
+stellar --version   # expect 28.1.0
+
+# Phase B: test asset and liquidity account
+stellar keys generate veltrixae-test-issuer --fund --rpc-url "$RPC" --network-passphrase "$PASSPHRASE"
+stellar keys generate veltrixae-lp --fund --rpc-url "$RPC" --network-passphrase "$PASSPHRASE"
+stellar keys address veltrixae-test-issuer
+stellar keys address veltrixae-lp
+# Add a trustline from veltrixae-lp to VTXTEST, then pay the seed amount from the issuer.
+stellar contract asset deploy --asset "VTXTEST:$(stellar keys address veltrixae-test-issuer)" \
+  --source-account veltrixae-test-issuer --rpc-url "$RPC" --network-passphrase "$PASSPHRASE"
+
+# Phase C: fund the pool (simulate first, check the fee against the cap, then submit)
+stellar contract invoke --id CDSNTA4DH5CXDJJMY4QQ6IUF2M3VLR2WVPCL3UUQMCVUDQ5ZHVYWUZA4 \
+  --source-account veltrixae-lp --rpc-url "$RPC" --network-passphrase "$PASSPHRASE" -- add_liquidity \
+  --token_a <TOKEN_A> --token_b <TOKEN_B> \
+  --amount_a_desired <A> --amount_b_desired <B> --amount_a_min <A> --amount_b_min <B> \
+  --to "$(stellar keys address veltrixae-lp)" --deadline <UNIX_SECONDS_SOON>
+
+# Verify (read-only)
+npm run verify:deployment
+RUN_TESTNET_TESTS=1 TEST_TOKEN_IN=<TOKEN_A> TEST_TOKEN_OUT=<TOKEN_B> npm run test:rpc
+npm run evidence:testnet -- --trials 20 --output docs/evidence/testnet-verification-<DATE>.json
+```
+
+The swap was signed in a wallet by `<SWAP_SIGNER_ADDRESS>`; its hash and balance changes are recorded above and in `docs/evidence/`.
+
 ## Preflight (read-only, repeat before each phase)
 
 ```sh
@@ -50,9 +148,9 @@ npm run plan:simulate
 
 Continue only if deployment is `verified`, every receipt has `matchesRecord: true`, and `restoreRequired` is false for the step ahead.
 
-## Phase A: keep the existing contracts alive — WRITE
+## Phase A: keep the existing contracts alive — WRITE (not executed)
 
-**Time-sensitive.** Pair WASM is live until ledger 5,631,435, which was about 4.2 days after the 2026-11-04 check, so around November 8–9. After that, pool creation may need a restore first. Other deployment entries last about 27 days.
+**Time-sensitive.** Pair WASM is live until ledger 5,631,435, which was about 4.2 days after the 2026-11-04 check, so around November 8–9. After that, pool creation may need a restore first. Other deployment entries last about 27 days. This phase has **not** been executed; the pool in [Executed results](#executed-results) was created before the expiry window closed.
 
 ```sh
 stellar contract extend --wasm-hash 26c28c1a76d1c4a2eee6db570be26424cfa16d3aa9de6a24ce2d27d346d915ad \
@@ -64,9 +162,9 @@ Repeat with the Factory and Router code hashes from `config/testnet.json` and wi
 
 **Verify:** the simulator shows a later `liveUntilLedger`. **Record:** transaction hashes and fees.
 
-## Phase B: test asset and liquidity account — WRITE
+## Phase B: test asset and liquidity account — WRITE (executed)
 
-Only after decisions 2 to 4. No liquidity moves here.
+Only after decisions 2 to 4. No liquidity moves here. **Executed:** see [Executed results](#executed-results) for the actual asset contract, issuer and addresses.
 
 1. Create identities `veltrixae-test-issuer` and `veltrixae-lp` with `stellar keys generate --fund`.
 2. Add a trustline from `veltrixae-lp` to `VTXTEST`, then pay it the seed amount from the issuer.
@@ -75,7 +173,9 @@ Only after decisions 2 to 4. No liquidity moves here.
 
 **Verify:** the LP's balances, and that each asset derives to its contract ID. **Record:** public addresses, contract IDs and hashes.
 
-## Phase C: first VELTRIXAE pool — WRITE
+## Phase C: first VELTRIXAE pool — WRITE (executed)
+
+**Executed:** the pool was funded and one swap confirmed. See [Executed results](#executed-results) and [Reproducing the executed steps](#reproducing-the-executed-steps). The commands below are the template that was used.
 
 Simulate with `--send=no`, check the fee against the cap, then submit:
 
@@ -99,11 +199,11 @@ npm run evidence:testnet -- --trials 20 --output docs/evidence/testnet-verificat
 
 Discovery is cached for up to 60 seconds. Confirm `POST /quotes` returns a quote validated by the VELTRIXAE router, which would be the first real proof of parity on this AMM.
 
-**Record:** the pair ID, transaction hash and fee, and add the asset to `config/testnet.json` in a reviewed PR. Update the README and funding evidence only after this is verified: quotes would then exist, but swaps still would not.
+**Record:** the pair ID, transaction hash and fee, and add the asset to `config/testnet.json` in a reviewed PR. The pair ID, hashes and fees are recorded in [Executed results](#executed-results). Quotes now exist and one swap has been confirmed; the README and funding evidence should be updated in a reviewed PR to reflect that, without overstating volume.
 
-## Phase D: aggregator — WRITE
+## Phase D: aggregator — WRITE (not executed)
 
-Only after decisions 6 and 7, and with Phase C verified. This uses the existing gated script, which verifies the deployment first, deploys the stateless upstream deployer, uploads the aggregator and deploys it atomically with initialization, so there is no uninitialized window.
+Only after decisions 6 and 7, and with Phase C verified. **Not executed:** no aggregator is deployed and no aggregator-routed swap exists. This uses the existing gated script, which verifies the deployment first, deploys the stateless upstream deployer, uploads the aggregator and deploys it atomically with initialization, so there is no uninitialized window.
 
 ```sh
 npm run test:contracts   # with the chosen CLI on PATH
@@ -125,7 +225,7 @@ Known limits to accept or fix first:
 
 ## After this plan: first wallet-approved swap
 
-Out of scope here and separately gated. Settle [issue draft 01](issues/01-prepare-swap-ledger-check.md) and [issue draft 02](issues/02-execution-deadline.md), then have a person review and sign one Testnet swap in a wallet. Until a receipt exists, keep saying there are no executed swaps.
+**Executed once.** One Testnet swap was reviewed and signed in a wallet; its receipt and balance changes are in [Executed results](#executed-results). [Issue draft 01](issues/01-prepare-swap-ledger-check.md) did not block this path. [Issue draft 02](issues/02-execution-deadline.md) remains open for the aggregator path. This is a single confirmed swap, not sustained use; do not claim production volume.
 
 ## Estimated costs
 
@@ -138,7 +238,8 @@ From `docs/evidence/testnet-plan-simulation-2026-11-04.json`. These are minimum 
 | Extend Factory and Router instances | Simulated | under 0.01 |
 | Upload aggregator and deployer WASM | Simulated | 2.31 and 0.15 |
 | Create pair | Simulated, placeholder tokens | 7.07 |
-| Add liquidity, asset setup | Cannot be simulated until earlier steps exist | Unknown |
+| Add liquidity, asset setup | Actual, from the executed run | `<ADD_LIQUIDITY_FEE_XLM>` (plus `<CREATE_PAIR_FEE_XLM>` if separate) |
+| Confirmed swap | Actual, from the executed run | `<SWAP_FEE_XLM>` |
 | Deploy and initialize aggregator | Cannot be simulated until uploaded. Earlier initialization receipts cost 1.88 and 4.35 | Unknown |
 
 ## If something goes wrong
@@ -154,3 +255,4 @@ There is no rollback on-chain. Contracts and pools remain.
 | Quote mismatch on the first pool | Stop. Backend math and this router disagree: keep quotes unavailable and investigate |
 | Wrong pool amounts | Withdraw through the Router, with approval. Record the mistake rather than removing it |
 | Testnet reset | All IDs become invalid. Keep old evidence as history, and redeploy only with new approval |
+| Swap receipt missing or unconfirmed | Do not record it as a swap. Look up the hash; only record a confirmed receipt with balance changes |

@@ -11,9 +11,12 @@ import { loadConfig } from './config.js';
 import { manifestSchema, quoteRequest, ServiceError, type Manifest } from './domain.js';
 import { input, output, quote } from './routing.js';
 
-const {values} = parseArgs({options:{trials:{type:'string',default:'10'},output:{type:'string'}}});
+const {values} = parseArgs({options:{trials:{type:'string',default:'10'},output:{type:'string'},'swap-hash':{type:'string'},pool:{type:'string'}}});
 const trials = Number(values.trials);
 if (!Number.isInteger(trials) || trials < 1 || trials > 50) throw new Error('--trials must be between 1 and 50');
+if (values['swap-hash'] !== undefined && !/^[0-9a-f]{64}$/.test(values['swap-hash'])) throw new Error('--swap-hash must be a 64-character lowercase hex transaction hash');
+if (values.pool !== undefined && !StrKey.isValidContract(values.pool)) throw new Error('--pool must be a valid contract address (C...)');
+if (values['swap-hash'] !== undefined && values.pool === undefined) throw new Error('--swap-hash requires --pool so reserves can be read for that pool');
 const {env,chain} = await loadConfig();
 const server = new rpc.Server(env.RPC_URL,{timeout:env.RPC_TIMEOUT_MS});
 const repository = new URL('../../',import.meta.url);
@@ -32,6 +35,26 @@ async function codeHash(id: string, expected: string | null) {
   return {id,observedWasmSha256:observed,expectedWasmSha256:expected,matches:expected === null ? null : observed === expected,instanceLiveUntilLedger:instance?.liveUntilLedgerSeq ?? null};
 }
 const stringify = (value: unknown) => typeof value === 'bigint' ? value.toString() : value;
+
+// Funded-pool and confirmed-swap demonstration. Both sections are read-only: the pool is inspected via
+// simulation and the swap is looked up as a historical receipt. Nothing is signed or submitted here.
+async function fundedPool(pool: string) {
+  const [token0,token1,reserves] = await Promise.all(['token_0','token_1','get_reserves'].map(method => read(pool,method))) as [{value:string},{value:string},{value:[bigint,bigint];ledger:number}];
+  return {pool,token0:token0.value,token1:token1.value,reserve0:reserves.value[0].toString(),reserve1:reserves.value[1].toString(),reservesLedger:reserves.ledger};
+}
+async function confirmedSwap(hash: string, pool: string) {
+  const tx = await server.getTransaction(hash);
+  if (tx.status === 'NOT_FOUND') return {hash,status:tx.status,confirmed:false,blocker:'Transaction is not retrievable from this RPC (not found or outside retention); no receipt can be confirmed.'};
+  if (tx.status !== 'SUCCESS') return {hash,status:tx.status,confirmed:false,ledger:tx.ledger,blocker:`Transaction status is ${tx.status}; a confirmed swap requires SUCCESS.`};
+  const [before,after] = await Promise.all([fundedPool(pool),fundedPool(pool)]);
+  return {hash,status:tx.status,confirmed:true,ledger:tx.ledger,createdAt:tx.createdAt,pool,reservesAtCollection:{before,after},note:'Reserves are read at collection time; per-swap balance changes must be derived from the transaction meta, which this collector does not decode.'};
+}
+const fundedPoolSection = values.pool === undefined
+  ? {blocker:'No --pool supplied; no funded Testnet pool was inspected.'}
+  : await fundedPool(values.pool).catch(error => ({pool:values.pool,blocker:`Pool could not be read: ${code(error)}`}));
+const confirmedSwapSection = values['swap-hash'] === undefined
+  ? {blocker:'No --swap-hash supplied; no confirmed swap receipt was captured.'}
+  : await confirmedSwap(values['swap-hash'],values.pool!).catch(error => ({hash:values['swap-hash'],confirmed:false,blocker:`Swap receipt could not be read: ${code(error)}`}));
 
 // 1. The configured VELTRIXAE AMM.
 const network = await server.getNetwork(), health = await server.getHealth();
@@ -111,6 +134,8 @@ const evidence = {
     receipts,
   },
   readiness:await chain.readiness(),
+  fundedPool:fundedPoolSection,
+  confirmedSwap:confirmedSwapSection,
   publicSoroswapReference:{
     note:'Soroswap-operated Testnet contracts: a reference for funded-pool behaviour. This is not VELTRIXAE liquidity and is not active configuration.',
     factory:publicFactory,router:publicRouter,poolCount:publicPoolCount,

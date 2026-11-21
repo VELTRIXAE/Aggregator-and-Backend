@@ -1,5 +1,16 @@
 # Read-only integration evidence
 
+## Funded-pool and confirmed-swap demonstration — 2026-11-21
+
+`testnet-funded-pool-2026-11-21.json` and
+`testnet-confirmed-swap-2026-11-21.json` record real Testnet observations, not
+mocked evidence: the pool file captures the test-only asset initialization,
+liquidity provisioning, quote and simulation responses; the swap file captures
+the confirmed transaction receipt and before/after balance changes. Both are
+pinned in SHA256SUMS. No mainnet activity and no synthetic liquidity are
+included. See [current remediation status](../READINESS_REMEDIATION_2026-11-21.md)
+for explicit blockers and reproducible steps.
+
 ## Latest checks — 2026-11-21
 
 See [current remediation status](../READINESS_REMEDIATION_2026-11-21.md).

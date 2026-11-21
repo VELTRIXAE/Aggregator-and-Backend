@@ -21,9 +21,11 @@ Health: `http://localhost:3000/api/v1/health`. OpenAPI: `/api/v1/openapi.json`.
 
 ## Status
 
-**VELTRIXAE currently has zero pools and no executable swaps. It is Testnet only, mainnet is disabled, and no VELTRIXAE contract has an independent security audit.**
+**VELTRIXAE is Testnet only, mainnet is disabled, and no VELTRIXAE contract has an independent security audit.** A single funded Testnet pool and one confirmed swap have been demonstrated with maintainer authorization; this is not a production deployment and the separate aggregator remains undeployed.
 
-The checked-in manifest references the verified VELTRIXAE Testnet Factory and Router. The November 2 deployment is complete; its real manifest, code hashes and receipts are preserved in docs/evidence. Run `npm run verify:deployment` or `GET /api/v1/readiness` to recheck live state. The Factory currently has zero pools and the separate aggregator is not deployed: quotes return `NO_LIQUIDITY`, and swap preparation returns `NOT_CONFIGURED`. No synthetic liquidity is returned. See [funding evidence](docs/FUNDING_EVIDENCE.md) for what has and has not been demonstrated, and the [Testnet plan](docs/TESTNET_LIVE_PLAN.md) for the steps to the first pool. That plan has not been executed. See [Testnet setup](docs/TESTNET_SETUP.md), [backend audit](docs/BACKEND_AUDIT.md) and [contract integration](docs/CONTRACT_INTEGRATION.md).
+The checked-in manifest references the verified VELTRIXAE Testnet Factory and Router. The November 2 deployment is complete; its real manifest, code hashes and receipts are preserved in docs/evidence. Run `npm run verify:deployment` or `GET /api/v1/readiness` to recheck live state.
+
+The funded-pool demonstration initialized test-only assets and liquidity, verified the quote and simulation, and captured a confirmed swap receipt with before/after balances. The reproducible steps, actual results, receipt hash and explicit blockers are recorded in [funded pool and confirmed swap evidence](docs/FUNDED_POOL_SWAP_EVIDENCE.md). No synthetic liquidity is used and no success is claimed on mocked evidence. The separate aggregator is still not deployed, so aggregator quotes return `NO_LIQUIDITY` and swap preparation returns `NOT_CONFIGURED`; the demonstrated swap is against the single Testnet pool, not an aggregated route. See [funding evidence](docs/FUNDING_EVIDENCE.md) for what has and has not been demonstrated, and the [Testnet plan](docs/TESTNET_LIVE_PLAN.md) for the remaining steps. See [Testnet setup](docs/TESTNET_SETUP.md), [backend audit](docs/BACKEND_AUDIT.md) and [contract integration](docs/CONTRACT_INTEGRATION.md).
 
 Discovery uses configurable bounded index batches and global RPC limits. It requires complete fresh observations on one ledger and fails explicitly if a factory cannot fit the collection budget; increasing the cap alone does not solve that limit.
 
@@ -38,7 +40,7 @@ Use `@veltrixae/frontend-client` in veltrixae-frontend. Integrate veltrixae-cont
 - [Current readiness evidence and remaining blockers](docs/READINESS_REMEDIATION_2026-11-21.md)
 - [Original contributions and measurements](docs/ORIGINAL_CONTRIBUTIONS.md), [changelog](CHANGELOG.md)
 - [Contributing](CONTRIBUTING.md), [security](SECURITY.md), [upstream attribution](docs/UPSTREAM_ATTRIBUTION.md), [notices](NOTICE), [license review](docs/LICENSE_REVIEW.md)
-- [Funding checklist](docs/FUNDING_CHECKLIST.md), [SCF technical evidence](docs/SCF_TECHNICAL_EVIDENCE.md), [funding evidence](docs/FUNDING_EVIDENCE.md), [roadmap](docs/ROADMAP.md), [contributor issue drafts](docs/issues/README.md)
+- [Funding checklist](docs/FUNDING_CHECKLIST.md), [SCF technical evidence](docs/SCF_TECHNICAL_EVIDENCE.md), [funding evidence](docs/FUNDING_EVIDENCE.md), [funded pool and confirmed swap evidence](docs/FUNDED_POOL_SWAP_EVIDENCE.md), [roadmap](docs/ROADMAP.md), [contributor issue drafts](docs/issues/README.md)
 - [Testnet plan](docs/TESTNET_LIVE_PLAN.md), [deployment reconciliation](docs/DEPLOYMENT_RECONCILIATION.md), [Rust advisories](docs/RUST_ADVISORIES.md)
 - [Production readiness gates](docs/PRODUCTION_READINESS.md)
 
